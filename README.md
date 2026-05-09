@@ -4,12 +4,12 @@ This project provides a complete portal for **Kuki Students’ Organisation (KSO
 
 ## Files
 
-- `/home/runner/work/Ksochd1/Ksochd1/Code.gs`
-- `/home/runner/work/Ksochd1/Ksochd1/Home.html`
-- `/home/runner/work/Ksochd1/Ksochd1/FormIndividual.html`
-- `/home/runner/work/Ksochd1/Ksochd1/FormFamily.html`
-- `/home/runner/work/Ksochd1/Ksochd1/Login.html`
-- `/home/runner/work/Ksochd1/Ksochd1/Dashboard.html`
+- `Code.gs`
+- `Home.html`
+- `FormIndividual.html`
+- `FormFamily.html`
+- `Login.html`
+- `Dashboard.html`
 
 ## Setup Instructions
 
@@ -23,7 +23,10 @@ This project provides a complete portal for **Kuki Students’ Organisation (KSO
    - `SESSION_YEAR` → defaults to `2026`
 7. In **Admins** sheet, update admin users with exact columns:
    - `Email, Password, Role, FullName, Active`
+   - Password format must be: `sha256:<hash>`
+   - Generate password hash by running `createPasswordHash("your-strong-password")` in Apps Script editor, then paste output into the Password column.
    - Allowed roles: `Admin`, `President`, `General Secretary`, `Treasurer`
+   - Default seeded admin row is inactive; set `Active` to `Yes` after setting hashed password.
 
 ## Required Sheet Structures
 

@@ -1,5 +1,5 @@
 const APP = {
-  ORG_NAME: 'Kuki Students’ Organisation (KSO) Chandigarh',
+  ORG_NAME: "Kuki Students’ Organisation (KSO) Chandigarh",
   SESSION: '2026-2027',
   SHEETS: {
     INDIVIDUAL: 'Individual',
@@ -88,8 +88,8 @@ function seedDefaults(ss) {
 
   const admins = ss.getSheetByName(APP.SHEETS.ADMINS);
   if (admins.getLastRow() === 1) {
-    admins.appendRow(['admin@ksochd.org', 'admin123', 'Admin', 'Default Admin', 'Yes']);
-    logAction('system', 'SEED_ADMIN', 'Created default admin account');
+    admins.appendRow(['admin@ksochd.org', '', 'Admin', 'Default Admin', 'No']);
+    logAction('system', 'SEED_ADMIN', 'Created inactive default admin. Set a hashed password and Active=Yes in Admins sheet.');
   }
 }
 
@@ -206,7 +206,7 @@ function adminLogin(email, password) {
     const row = admins[i];
     const active = String(row[4] || '').toLowerCase();
     if (String(row[0]).toLowerCase() === String(email).toLowerCase() && (active === 'yes' || active === 'true')) {
-      if (String(row[1]) === String(password)) {
+      if (verifyPassword(row[1], password)) {
         const token = Utilities.getUuid();
         const sessionData = {
           email: row[0],
@@ -221,6 +221,28 @@ function adminLogin(email, password) {
     }
   }
   return { success: false, message: 'Invalid credentials or inactive account.' };
+}
+
+function createPasswordHash(password) {
+  if (!password || String(password).length < 8) {
+    throw new Error('Password must be at least 8 characters.');
+  }
+  return `sha256:${hashPassword(String(password))}`;
+}
+
+function verifyPassword(storedPassword, inputPassword) {
+  const stored = String(storedPassword || '');
+  if (!stored || stored.indexOf('sha256:') !== 0) return false;
+  const incoming = `sha256:${hashPassword(String(inputPassword || ''))}`;
+  return stored === incoming;
+}
+
+function hashPassword(text) {
+  const digest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, text, Utilities.Charset.UTF_8);
+  return digest.map(b => {
+    const v = (b < 0 ? b + 256 : b).toString(16);
+    return v.length === 1 ? `0${v}` : v;
+  }).join('');
 }
 
 function getMembers(token, memberType, status, query) {
