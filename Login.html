@@ -164,7 +164,7 @@
             if (response.success) {
               showAlert('Login successful! Redirecting...', 'success');
               setTimeout(() => {
-                window.location.href = '?page=dashboard';
+                navigateTo('dashboard');
               }, 1000);
             } else {
               showAlert(response.message || 'Invalid email or password', 'error');
