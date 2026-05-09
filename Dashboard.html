@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - KSO Chandigarh</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .modal { display: none; }
+    .modal.active { display: flex; }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <!-- Top Navigation -->
+  <nav class="bg-blue-900 text-white shadow-lg">
+    <div class="container mx-auto px-4 py-4">
+      <div class="flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+          <i class="fas fa-shield-alt text-3xl"></i>
+          <div>
+            <h1 class="text-xl font-bold">KSO Chandigarh Admin</h1>
+            <p class="text-xs text-blue-200">Management Portal 2026-2027</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-6">
+          <div class="text-right">
+            <p class="text-sm font-medium" id="adminName">Loading...</p>
+            <p class="text-xs text-blue-200" id="adminRole">...</p>
+          </div>
+          <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded transition">
+            <i class="fas fa-sign-out-alt mr-2"></i> Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mx-auto px-4 py-6">
+    <!-- Alert Container -->
+    <div id="alertContainer" class="hidden mb-6"></div>
+
+    <!-- Dashboard Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6" id="statsContainer">
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">Total Members</p>
+            <p class="text-3xl font-bold text-gray-800" id="totalMembers">0</p>
+          </div>
+          <i class="fas fa-users text-4xl text-blue-500"></i>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">Pending Approvals</p>
+            <p class="text-3xl font-bold text-yellow-600" id="pendingApprovals">0</p>
+          </div>
+          <i class="fas fa-clock text-4xl text-yellow-500"></i>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">Total Revenue</p>
+            <p class="text-3xl font-bold text-green-600" id="totalRevenue">₹0</p>
+          </div>
+          <i class="fas fa-rupee-sign text-4xl text-green-500"></i>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">Pending Payments</p>
+            <p class="text-3xl font-bold text-red-600" id="pendingPayments">0</p>
+          </div>
+          <i class="fas fa-exclamation-triangle text-4xl text-red-500"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Tabs -->
+    <div class="bg-white rounded-lg shadow mb-6">
+      <div class="border-b border-gray-200">
+        <nav class="flex overflow-x-auto">
+          <button onclick="switchTab('dashboard')" class="tab-btn px-6 py-4 text-sm font-medium border-b-2 border-blue-500 text-blue-600">
+            <i class="fas fa-home mr-2"></i> Dashboard
+          </button>
+          <button onclick="switchTab('individual')" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+            <i class="fas fa-user mr-2"></i> Individual Members
+          </button>
+          <button onclick="switchTab('family')" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+            <i class="fas fa-users mr-2"></i> Family Members
+          </button>
+          <button onclick="switchTab('payments')" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+            <i class="fas fa-money-bill-wave mr-2"></i> Payments
+          </button>
+          <button onclick="switchTab('events')" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+            <i class="fas fa-calendar-alt mr-2"></i> Events
+          </button>
+          <button onclick="switchTab('announcements')" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+            <i class="fas fa-bullhorn mr-2"></i> Announcements
+          </button>
+          <button onclick="switchTab('reports')" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+            <i class="fas fa-chart-bar mr-2"></i> Reports
+          </button>
+          <button onclick="switchTab('tools')" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+            <i class="fas fa-tools mr-2"></i> Tools
+          </button>
+        </nav>
+      </div>
+
+      <!-- Dashboard Tab -->
+      <div id="dashboardTab" class="tab-content active p-6">
+        <h2 class="text-2xl font-bold mb-6">Dashboard Overview</h2>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Recent Activities -->
+          <div class="bg-gray-50 rounded-lg p-6">
+            <h3 class="text-lg font-bold mb-4">
+              <i class="fas fa-history text-blue-600 mr-2"></i> Recent Activities
+            </h3>
+            <div id="recentActivities" class="space-y-3">
+              <p class="text-gray-500 text-sm">Loading activities...</p>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="bg-gray-50 rounded-lg p-6">
+            <h3 class="text-lg font-bold mb-4">
+              <i class="fas fa-bolt text-yellow-600 mr-2"></i> Quick Actions
+            </h3>
+            <div class="space-y-3">
+              <button onclick="switchTab('individual')" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">
+                <i class="fas fa-check-circle mr-2"></i> Review Pending Applications
+              </button>
+              <button onclick="openRecordPaymentModal()" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition">
+                <i class="fas fa-rupee-sign mr-2"></i> Record Payment
+              </button>
+              <button onclick="switchTab('events')" class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition">
+                <i class="fas fa-calendar-plus mr-2"></i> Create Event
+              </button>
+              <button onclick="switchTab('announcements')" class="w-full bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 transition">
+                <i class="fas fa-bullhorn mr-2"></i> Post Announcement
+              </button>
+              <button onclick="exportData()" class="w-full bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-700 transition">
+                <i class="fas fa-file-excel mr-2"></i> Export Data
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Birthdays This Month -->
+        <div class="mt-6 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-6">
+          <h3 class="text-lg font-bold mb-4">
+            <i class="fas fa-birthday-cake text-pink-600 mr-2"></i> Birthdays This Month
+          </h3>
+          <div id="birthdaysContainer">
+            <p class="text-gray-500 text-sm">Loading birthdays...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Individual Members Tab -->
+      <div id="individualTab" class="tab-content p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold">Individual Members</h2>
+          <div class="flex space-x-3">
+            <input type="text" id="searchIndividual" placeholder="Search members..."
+              class="px-4 py-2 border rounded-lg" onkeyup="searchMembers('Individual')">
+            <select id="filterIndividualStatus" onchange="loadMembers('Individual')" class="px-4 py-2 border rounded-lg">
+              <option value="">All Status</option>
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="individualMembersContainer" class="overflow-x-auto">
+          <p class="text-gray-500">Loading members...</p>
+        </div>
+      </div>
+
+      <!-- Family Members Tab -->
+      <div id="familyTab" class="tab-content p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold">Family Members</h2>
+          <div class="flex space-x-3">
+            <input type="text" id="searchFamily" placeholder="Search members..."
+              class="px-4 py-2 border rounded-lg" onkeyup="searchMembers('Family')">
+            <select id="filterFamilyStatus" onchange="loadMembers('Family')" class="px-4 py-2 border rounded-lg">
+              <option value="">All Status</option>
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="familyMembersContainer" class="overflow-x-auto">
+          <p class="text-gray-500">Loading members...</p>
+        </div>
+      </div>
+
+      <!-- Payments Tab -->
+      <div id="paymentsTab" class="tab-content p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold">Payment Management</h2>
+          <button onclick="openRecordPaymentModal()" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
+            <i class="fas fa-plus mr-2"></i> Record Payment
+          </button>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-4 mb-6">
+          <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded">
+            <p class="text-sm text-gray-600">Total Collected</p>
+            <p class="text-2xl font-bold text-green-700" id="totalCollected">₹0</p>
+          </div>
+          <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
+            <p class="text-sm text-gray-600">Pending Collection</p>
+            <p class="text-2xl font-bold text-yellow-700" id="pendingCollection">₹0</p>
+          </div>
+          <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+            <p class="text-sm text-gray-600">Total Receipts</p>
+            <p class="text-2xl font-bold text-blue-700" id="totalReceipts">0</p>
+          </div>
+        </div>
+
+        <div id="paymentsContainer">
+          <p class="text-gray-500">Loading payment records...</p>
+        </div>
+      </div>
+
+      <!-- Events Tab -->
+      <div id="eventsTab" class="tab-content p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold">Event Management</h2>
+          <button onclick="openCreateEventModal()" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700">
+            <i class="fas fa-plus mr-2"></i> Create Event
+          </button>
+        </div>
+
+        <div id="eventsContainer">
+          <p class="text-gray-500">Loading events...</p>
+        </div>
+      </div>
+
+      <!-- Announcements Tab -->
+      <div id="announcementsTab" class="tab-content p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold">Announcements</h2>
+          <button onclick="openCreateAnnouncementModal()" class="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700">
+            <i class="fas fa-plus mr-2"></i> Post Announcement
+          </button>
+        </div>
+
+        <div id="announcementsContainer">
+          <p class="text-gray-500">Loading announcements...</p>
+        </div>
+      </div>
+
+      <!-- Reports Tab -->
+      <div id="reportsTab" class="tab-content p-6">
+        <h2 class="text-2xl font-bold mb-6">Analytics & Reports</h2>
+
+        <div class="grid md:grid-cols-2 gap-6 mb-6">
+          <div class="bg-white border rounded-lg p-6">
+            <h3 class="font-bold mb-4">
+              <i class="fas fa-chart-pie text-blue-600 mr-2"></i> Membership Distribution
+            </h3>
+            <div id="membershipDistribution"></div>
+          </div>
+
+          <div class="bg-white border rounded-lg p-6">
+            <h3 class="font-bold mb-4">
+              <i class="fas fa-venus-mars text-purple-600 mr-2"></i> Gender Distribution
+            </h3>
+            <div id="genderDistribution"></div>
+          </div>
+        </div>
+
+        <div class="bg-white border rounded-lg p-6">
+          <h3 class="font-bold mb-4">
+            <i class="fas fa-university text-green-600 mr-2"></i> Top Institutions
+            </h3>
+          <div id="institutionDistribution"></div>
+        </div>
+      </div>
+
+      <!-- Tools Tab -->
+      <div id="toolsTab" class="tab-content p-6">
+        <h2 class="text-2xl font-bold mb-6">Admin Tools</h2>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Database Tools -->
+          <div class="bg-white border rounded-lg p-6">
+            <h3 class="font-bold mb-4">
+              <i class="fas fa-database text-blue-600 mr-2"></i> Database Tools
+            </h3>
+            <div class="space-y-3">
+              <button onclick="initializeDatabase()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                <i class="fas fa-cog mr-2"></i> Initialize Database
+              </button>
+              <button onclick="createBackup()" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+                <i class="fas fa-save mr-2"></i> Create Backup
+              </button>
+              <button onclick="exportAllData()" class="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700">
+                <i class="fas fa-file-export mr-2"></i> Export All Data
+              </button>
+            </div>
+          </div>
+
+          <!-- Communication Tools -->
+          <div class="bg-white border rounded-lg p-6">
+            <h3 class="font-bold mb-4">
+              <i class="fas fa-envelope text-orange-600 mr-2"></i> Communication Tools
+            </h3>
+            <div class="space-y-3">
+              <button onclick="openBulkEmailModal()" class="w-full bg-orange-600 text-white py-2 rounded hover:bg-orange-700">
+                <i class="fas fa-envelope-open mr-2"></i> Send Bulk Email
+              </button>
+              <button onclick="viewBirthdayReminders()" class="w-full bg-pink-600 text-white py-2 rounded hover:bg-pink-700">
+                <i class="fas fa-birthday-cake mr-2"></i> Birthday Reminders
+              </button>
+              <button onclick="openPollModal()" class="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700">
+                <i class="fas fa-poll mr-2"></i> Create Poll
+              </button>
+            </div>
+          </div>
+
+          <!-- Member Tools -->
+          <div class="bg-white border rounded-lg p-6">
+            <h3 class="font-bold mb-4">
+              <i class="fas fa-id-card text-green-600 mr-2"></i> Member Tools
+            </h3>
+            <div class="space-y-3">
+              <button onclick="generateMemberDirectory()" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+                <i class="fas fa-address-book mr-2"></i> Member Directory
+              </button>
+              <button onclick="openCertificateModal()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                <i class="fas fa-certificate mr-2"></i> Generate Certificate
+              </button>
+              <button onclick="openSkillsModal()" class="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700">
+                <i class="fas fa-tools mr-2"></i> Skills Database
+              </button>
+            </div>
+          </div>
+
+          <!-- Advanced Features -->
+          <div class="bg-white border rounded-lg p-6">
+            <h3 class="font-bold mb-4">
+              <i class="fas fa-star text-yellow-600 mr-2"></i> Advanced Features
+            </h3>
+            <div class="space-y-3">
+              <button onclick="openCommitteeModal()" class="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700">
+                <i class="fas fa-user-tie mr-2"></i> Committee Management
+              </button>
+              <button onclick="openVolunteerModal()" class="w-full bg-teal-600 text-white py-2 rounded hover:bg-teal-700">
+                <i class="fas fa-hands-helping mr-2"></i> Volunteer Hours
+              </button>
+              <button onclick="openJobBoardModal()" class="w-full bg-cyan-600 text-white py-2 rounded hover:bg-cyan-700">
+                <i class="fas fa-briefcase mr-2"></i> Job Board
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  <!-- Member Details Modal -->
+  <div id="memberModal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+    <div class="bg-white rounded-lg max-w-4xl w-full mx-4 max-h-screen overflow-y-auto">
+      <div class="p-6" id="memberModalContent">
+        <!-- Content loaded dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Record Payment Modal -->
+  <div id="paymentModal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+    <div class="bg-white rounded-lg max-w-md w-full mx-4">
+      <div class="p-6">
+        <h3 class="text-xl font-bold mb-4">Record Payment</h3>
+        <form id="paymentForm">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium mb-2">Enrollment Number</label>
+              <input type="text" id="paymentEnrollment" required class="w-full px-4 py-2 border rounded-lg">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Amount</label>
+              <input type="number" id="paymentAmount" required class="w-full px-4 py-2 border rounded-lg">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Payment Mode</label>
+              <select id="paymentMode" required class="w-full px-4 py-2 border rounded-lg">
+                <option value="Cash">Cash</option>
+                <option value="UPI">UPI</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="Cheque">Cheque</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Transaction Reference (Optional)</label>
+              <input type="text" id="transactionRef" class="w-full px-4 py-2 border rounded-lg">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Notes</label>
+              <textarea id="paymentNotes" rows="2" class="w-full px-4 py-2 border rounded-lg"></textarea>
+            </div>
+          </div>
+          <div class="flex justify-end space-x-3 mt-6">
+            <button type="button" onclick="closeModal('paymentModal')" class="px-6 py-2 border rounded-lg">Cancel</button>
+            <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Record Payment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentUser = null;
+    let allMembers = {Individual: [], Family: []};
+
+    // Initialize dashboard
+    async function init() {
+      try {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            if (response.authenticated) {
+              currentUser = response.session;
+              document.getElementById('adminName').textContent = currentUser.fullName;
+              document.getElementById('adminRole').textContent = currentUser.role;
+              loadDashboardData();
+            } else {
+              window.location.href = '?page=login';
+            }
+          })
+          .checkAuth();
+      } catch (error) {
+        showAlert('Failed to load session: ' + error.message, 'error');
+      }
+    }
+
+    function loadDashboardData() {
+      loadStats();
+      loadMembers('Individual');
+      loadMembers('Family');
+    }
+
+    function loadStats() {
+      google.script.run
+        .withSuccessHandler(function(data) {
+          if (data) {
+            document.getElementById('totalMembers').textContent = data.stats.totalMembers;
+            document.getElementById('pendingApprovals').textContent = data.stats.pendingApprovals;
+            document.getElementById('totalRevenue').textContent = '₹' + data.stats.totalRevenue.toLocaleString();
+            document.getElementById('pendingPayments').textContent = data.stats.pendingPayments;
+
+            // Load recent activities
+            const activitiesHtml = data.recentActivities.map(activity => `
+              <div class="border-l-2 border-blue-500 pl-3 py-2">
+                <p class="text-sm font-medium">${activity.action}</p>
+                <p class="text-xs text-gray-500">${activity.details}</p>
+                <p class="text-xs text-gray-400">${new Date(activity.timestamp).toLocaleString()}</p>
+              </div>
+            `).join('');
+            document.getElementById('recentActivities').innerHTML = activitiesHtml || '<p class="text-gray-500 text-sm">No recent activities</p>';
+          }
+        })
+        .getDashboardStats();
+
+      // Load birthdays
+      google.script.run
+        .withSuccessHandler(function(birthdays) {
+          const birthdaysHtml = birthdays.map(b => `
+            <div class="inline-block bg-white rounded-lg p-3 m-2 shadow">
+              <p class="font-medium">${b.name}</p>
+              <p class="text-sm text-gray-600">${new Date(b.dob).toLocaleDateString()}</p>
+              <p class="text-xs text-gray-500">${b.enrollmentNo}</p>
+            </div>
+          `).join('');
+          document.getElementById('birthdaysContainer').innerHTML = birthdaysHtml || '<p class="text-gray-500">No birthdays this month</p>';
+        })
+        .getBirthdaysThisMonth();
+    }
+
+    function loadMembers(type) {
+      const status = document.getElementById(`filter${type}Status`)?.value || '';
+      google.script.run
+        .withSuccessHandler(function(members) {
+          allMembers[type] = members;
+          displayMembers(type, members);
+        })
+        .getMembers(type, status);
+    }
+
+    function displayMembers(type, members) {
+      const container = document.getElementById(`${type.toLowerCase()}MembersContainer`);
+
+      if (members.length === 0) {
+        container.innerHTML = '<p class="text-gray-500">No members found</p>';
+        return;
+      }
+
+      const html = `
+        <table class="min-w-full bg-white">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Enrollment</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Name</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Email</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Phone</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Status</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Payment</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            ${members.map(member => `
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 text-sm">${member.EnrollmentNo}</td>
+                <td class="px-4 py-3 text-sm font-medium">${member.Name}</td>
+                <td class="px-4 py-3 text-sm">${member.Email}</td>
+                <td class="px-4 py-3 text-sm">${member.Phone}</td>
+                <td class="px-4 py-3">
+                  <span class="px-2 py-1 text-xs rounded-full ${
+                    member.Status === 'Approved' ? 'bg-green-100 text-green-800' :
+                    member.Status === 'Rejected' ? 'bg-red-100 text-red-800' :
+                    'bg-yellow-100 text-yellow-800'
+                  }">${member.Status}</span>
+                </td>
+                <td class="px-4 py-3 text-sm">
+                  ${member.AmountPaid > 0 ? `<span class="text-green-600">₹${member.AmountPaid}</span>` : '<span class="text-red-600">Pending</span>'}
+                </td>
+                <td class="px-4 py-3 text-sm">
+                  <button onclick="viewMember('${member.EnrollmentNo}')" class="text-blue-600 hover:text-blue-800 mr-2">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  ${member.Status === 'Pending' ? `
+                    <button onclick="approveMember('${member.EnrollmentNo}')" class="text-green-600 hover:text-green-800 mr-2">
+                      <i class="fas fa-check"></i>
+                    </button>
+                    <button onclick="rejectMember('${member.EnrollmentNo}')" class="text-red-600 hover:text-red-800">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  ` : ''}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    function viewMember(enrollmentNo) {
+      google.script.run
+        .withSuccessHandler(function(member) {
+          if (member) {
+            const html = `
+              <div class="flex justify-between items-start mb-4">
+                <h3 class="text-2xl font-bold">Member Details</h3>
+                <button onclick="closeModal('memberModal')" class="text-gray-500 hover:text-gray-700">
+                  <i class="fas fa-times text-2xl"></i>
+                </button>
+              </div>
+              <div class="grid md:grid-cols-2 gap-6">
+                ${member.PhotoURL ? `
+                  <div class="col-span-2 text-center">
+                    <img src="${member.PhotoURL}" class="w-32 h-32 object-cover rounded-full mx-auto border-4 border-blue-500">
+                  </div>
+                ` : ''}
+                <div>
+                  <p class="text-sm text-gray-600">Enrollment Number</p>
+                  <p class="font-bold text-lg">${member.EnrollmentNo}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-gray-600">Status</p>
+                  <span class="px-3 py-1 rounded-full ${
+                    member.Status === 'Approved' ? 'bg-green-100 text-green-800' :
+                    member.Status === 'Rejected' ? 'bg-red-100 text-red-800' :
+                    'bg-yellow-100 text-yellow-800'
+                  }">${member.Status}</span>
+                </div>
+                <div><p class="text-sm text-gray-600">Name</p><p class="font-medium">${member.Name}</p></div>
+                <div><p class="text-sm text-gray-600">Email</p><p class="font-medium">${member.Email}</p></div>
+                <div><p class="text-sm text-gray-600">Phone</p><p class="font-medium">${member.Phone}</p></div>
+                <div><p class="text-sm text-gray-600">Gender</p><p class="font-medium">${member.Gender}</p></div>
+                <div><p class="text-sm text-gray-600">Date of Birth</p><p class="font-medium">${member.DOB ? new Date(member.DOB).toLocaleDateString() : 'N/A'}</p></div>
+                <div><p class="text-sm text-gray-600">Institution</p><p class="font-medium">${member.Institution}</p></div>
+                <div><p class="text-sm text-gray-600">Course</p><p class="font-medium">${member.Course}</p></div>
+                <div><p class="text-sm text-gray-600">Amount Paid</p><p class="font-medium text-green-600">₹${member.AmountPaid}</p></div>
+                <div class="col-span-2"><p class="text-sm text-gray-600">Residential Address</p><p class="font-medium">${member.ResidentialAddress}</p></div>
+              </div>
+              <div class="mt-6 flex justify-end space-x-3">
+                ${member.Status === 'Pending' ? `
+                  <button onclick="approveMember('${member.EnrollmentNo}')" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                    Approve
+                  </button>
+                  <button onclick="rejectMember('${member.EnrollmentNo}')" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                    Reject
+                  </button>
+                ` : ''}
+                <button onclick="closeModal('memberModal')" class="px-6 py-2 border rounded-lg">Close</button>
+              </div>
+            `;
+            document.getElementById('memberModalContent').innerHTML = html;
+            openModal('memberModal');
+          }
+        })
+        .getMemberByEnrollment(enrollmentNo);
+    }
+
+    function approveMember(enrollmentNo) {
+      if (!confirm('Approve this member?')) return;
+
+      const notes = prompt('Add approval notes (optional):');
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            showAlert('Member approved successfully!', 'success');
+            loadDashboardData();
+            closeModal('memberModal');
+          } else {
+            showAlert(response.message, 'error');
+          }
+        })
+        .approveMember(enrollmentNo, notes);
+    }
+
+    function rejectMember(enrollmentNo) {
+      const reason = prompt('Enter rejection reason:');
+      if (!reason) return;
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            showAlert('Member rejected', 'success');
+            loadDashboardData();
+            closeModal('memberModal');
+          } else {
+            showAlert(response.message, 'error');
+          }
+        })
+        .rejectMember(enrollmentNo, reason);
+    }
+
+    // Record payment
+    document.getElementById('paymentForm')?.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const paymentData = {
+        enrollmentNo: document.getElementById('paymentEnrollment').value,
+        amount: parseFloat(document.getElementById('paymentAmount').value),
+        paymentMode: document.getElementById('paymentMode').value,
+        transactionRef: document.getElementById('transactionRef').value,
+        notes: document.getElementById('paymentNotes').value
+      };
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            showAlert(`Payment recorded! Receipt No: ${response.receiptNo}`, 'success');
+            document.getElementById('paymentForm').reset();
+            closeModal('paymentModal');
+            loadDashboardData();
+          } else {
+            showAlert(response.message, 'error');
+          }
+        })
+        .recordPayment(paymentData);
+    });
+
+    function switchTab(tabName) {
+      // Hide all tabs
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+      });
+
+      // Remove active class from all buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-blue-500', 'text-blue-600');
+        btn.classList.add('text-gray-500');
+      });
+
+      // Show selected tab
+      document.getElementById(tabName + 'Tab').classList.add('active');
+
+      // Highlight selected button
+      event.target.classList.remove('text-gray-500');
+      event.target.classList.add('border-blue-500', 'text-blue-600');
+
+      // Load specific tab data if needed
+      if (tabName === 'reports') {
+        loadReports();
+      }
+    }
+
+    function loadReports() {
+      google.script.run
+        .withSuccessHandler(function(data) {
+          if (data) {
+            // Display membership distribution
+            document.getElementById('membershipDistribution').innerHTML = `
+              <p>Individual: ${data.overview.individualMembers}</p>
+              <p>Family: ${data.overview.familyMembers}</p>
+            `;
+
+            // Display gender distribution
+            document.getElementById('genderDistribution').innerHTML = `
+              <p>Male: ${data.genderDistribution.male}</p>
+              <p>Female: ${data.genderDistribution.female}</p>
+              <p>Other: ${data.genderDistribution.other}</p>
+            `;
+
+            // Display institution distribution
+            const instHtml = Object.entries(data.institutionDistribution)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 10)
+              .map(([inst, count]) => `<p>${inst}: ${count}</p>`)
+              .join('');
+            document.getElementById('institutionDistribution').innerHTML = instHtml;
+          }
+        })
+        .generateAnalyticsReport();
+    }
+
+    function openModal(modalId) {
+      document.getElementById(modalId).classList.add('active');
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    function openRecordPaymentModal() {
+      openModal('paymentModal');
+    }
+
+    function showAlert(message, type = 'success') {
+      const alertContainer = document.getElementById('alertContainer');
+      const bgColor = type === 'success' ? 'bg-green-50 border-green-500 text-green-800' : 'bg-red-50 border-red-500 text-red-800';
+      const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
+
+      alertContainer.innerHTML = `
+        <div class="${bgColor} border-l-4 p-4 rounded">
+          <div class="flex items-center">
+            <i class="fas ${icon} text-xl mr-3"></i>
+            <p>${message}</p>
+          </div>
+        </div>
+      `;
+      alertContainer.classList.remove('hidden');
+
+      setTimeout(() => {
+        alertContainer.classList.add('hidden');
+      }, 5000);
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function logout() {
+      google.script.run
+        .withSuccessHandler(function() {
+          window.location.href = '?page=login';
+        })
+        .logout();
+    }
+
+    function searchMembers(type) {
+      const query = document.getElementById(`search${type}`).value.toLowerCase();
+      const filtered = allMembers[type].filter(member =>
+        member.Name.toLowerCase().includes(query) ||
+        member.EnrollmentNo.toLowerCase().includes(query) ||
+        member.Email.toLowerCase().includes(query) ||
+        member.Phone.includes(query)
+      );
+      displayMembers(type, filtered);
+    }
+
+    function exportData() {
+      if (!confirm('Export all member data to Excel?')) return;
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            window.open(response.url, '_blank');
+            showAlert('Data exported successfully!', 'success');
+          } else {
+            showAlert(response.message, 'error');
+          }
+        })
+        .exportToExcel('Individual', '');
+    }
+
+    function initializeDatabase() {
+      if (!confirm('Initialize database with default structure?')) return;
+
+      google.script.run
+        .withSuccessHandler(function(message) {
+          showAlert(message, 'success');
+        })
+        .initializeDatabase();
+    }
+
+    function createBackup() {
+      if (!confirm('Create a backup of all data?')) return;
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            window.open(response.backupURL, '_blank');
+            showAlert('Backup created: ' + response.backupName, 'success');
+          } else {
+            showAlert(response.message, 'error');
+          }
+        })
+        .createBackup();
+    }
+
+    // Placeholder functions for modal features
+    function openCreateEventModal() { alert('Event creation modal - to be implemented'); }
+    function openCreateAnnouncementModal() { alert('Announcement modal - to be implemented'); }
+    function openBulkEmailModal() { alert('Bulk email modal - to be implemented'); }
+    function viewBirthdayReminders() { switchTab('dashboard'); }
+    function openPollModal() { alert('Poll creation modal - to be implemented'); }
+    function generateMemberDirectory() { alert('Member directory - to be implemented'); }
+    function openCertificateModal() { alert('Certificate generation - to be implemented'); }
+    function openSkillsModal() { alert('Skills database - to be implemented'); }
+    function openCommitteeModal() { alert('Committee management - to be implemented'); }
+    function openVolunteerModal() { alert('Volunteer hours - to be implemented'); }
+    function openJobBoardModal() { alert('Job board - to be implemented'); }
+    function exportAllData() { exportData(); }
+
+    // Initialize on page load
+    window.onload = init;
+  </script>
+</body>
+</html>
