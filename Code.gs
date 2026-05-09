@@ -2475,3 +2475,70 @@ function initializeDatabase() {
 
   return 'Database initialized successfully!';
 }
+
+// ==================== DATA MIGRATION ====================
+
+/**
+ * Migration function to add Term column to existing member records
+ * Run this once after updating to the new version with term support
+ */
+function migrateAddTermColumn() {
+  try {
+    const activeTerm = getActiveTerm();
+    const sheets = ['Individual', 'Family'];
+    let totalMigrated = 0;
+
+    sheets.forEach(sheetName => {
+      const sheet = getSheet(sheetName);
+      const data = sheet.getDataRange().getValues();
+      const headers = data[0];
+
+      // Check if Term column already exists
+      const termIndex = headers.indexOf('Term');
+
+      if (termIndex === -1) {
+        // Add Term header
+        headers.push('Term');
+        sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+
+        // Add Term value to all existing rows
+        const termColumnIndex = headers.length;
+        for (let i = 1; i < data.length; i++) {
+          sheet.getRange(i + 1, termColumnIndex).setValue(activeTerm);
+          totalMigrated++;
+        }
+
+        Logger.log(`Added Term column to ${sheetName} sheet with ${data.length - 1} records`);
+      } else {
+        // Term column exists, fill empty Term values
+        const emptyTermRows = [];
+        for (let i = 1; i < data.length; i++) {
+          if (!data[i][termIndex]) {
+            emptyTermRows.push(i + 1);
+            sheet.getRange(i + 1, termIndex + 1).setValue(activeTerm);
+            totalMigrated++;
+          }
+        }
+
+        if (emptyTermRows.length > 0) {
+          Logger.log(`Filled ${emptyTermRows.length} empty Term values in ${sheetName} sheet`);
+        } else {
+          Logger.log(`No migration needed for ${sheetName} sheet - all records have Term values`);
+        }
+      }
+    });
+
+    Logger.log(`Migration completed: ${totalMigrated} records updated with term "${activeTerm}"`);
+    return {
+      success: true,
+      message: `Successfully migrated ${totalMigrated} records to term "${activeTerm}"`,
+      totalMigrated: totalMigrated
+    };
+  } catch (error) {
+    Logger.log('Migration error: ' + error.message);
+    return {
+      success: false,
+      message: 'Migration failed: ' + error.message
+    };
+  }
+}
