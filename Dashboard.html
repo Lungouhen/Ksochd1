@@ -25,9 +25,93 @@
       text-decoration: underline;
       transform: scale(1.05);
     }
+
+    /* Loading Overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .loading-overlay.hidden {
+      display: none;
+    }
+
+    /* Spinner Animation */
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid #fff;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Skeleton Loading */
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+    }
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Button Loading State */
+    .btn-loading {
+      position: relative;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    .btn-loading::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      top: 50%;
+      left: 50%;
+      margin-left: -8px;
+      margin-top: -8px;
+      border: 2px solid transparent;
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    /* Progress Bar */
+    .progress-bar {
+      height: 4px;
+      background: #e0e0e0;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      transition: width 0.3s ease;
+    }
   </style>
 </head>
 <body class="bg-gray-100">
+  <!-- Global Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay hidden">
+    <div class="text-center">
+      <div class="spinner"></div>
+      <p class="text-white mt-4 font-medium" id="loadingMessage">Loading...</p>
+    </div>
+  </div>
+
   <!-- Top Navigation -->
   <nav class="bg-blue-900 text-white shadow-lg">
     <div class="container mx-auto px-4 py-4">
@@ -935,6 +1019,79 @@
       window.location.href = `${SCRIPT_URL}?page=${page}`;
     }
 
+    // ==================== LOADING INDICATOR HELPERS ====================
+
+    // Show global loading overlay
+    function showLoading(message = 'Loading...') {
+      const overlay = document.getElementById('loadingOverlay');
+      const messageEl = document.getElementById('loadingMessage');
+      messageEl.textContent = message;
+      overlay.classList.remove('hidden');
+    }
+
+    // Hide global loading overlay
+    function hideLoading() {
+      const overlay = document.getElementById('loadingOverlay');
+      overlay.classList.add('hidden');
+    }
+
+    // Add loading state to a button
+    function setButtonLoading(buttonElement, loading = true) {
+      if (loading) {
+        buttonElement.disabled = true;
+        buttonElement.classList.add('btn-loading');
+        buttonElement.dataset.originalText = buttonElement.innerHTML;
+        const icon = buttonElement.querySelector('i');
+        if (icon) {
+          buttonElement.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>${buttonElement.textContent.trim()}`;
+        }
+      } else {
+        buttonElement.disabled = false;
+        buttonElement.classList.remove('btn-loading');
+        if (buttonElement.dataset.originalText) {
+          buttonElement.innerHTML = buttonElement.dataset.originalText;
+        }
+      }
+    }
+
+    // Show skeleton loader in a container
+    function showSkeleton(containerId, type = 'table') {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      if (type === 'table') {
+        container.innerHTML = `
+          <div class="space-y-3">
+            ${Array(5).fill(0).map(() => `
+              <div class="skeleton h-12 rounded"></div>
+            `).join('')}
+          </div>
+        `;
+      } else if (type === 'card') {
+        container.innerHTML = `
+          <div class="space-y-4">
+            ${Array(3).fill(0).map(() => `
+              <div class="skeleton h-24 rounded-lg"></div>
+            `).join('')}
+          </div>
+        `;
+      } else if (type === 'text') {
+        container.innerHTML = `
+          <div class="space-y-2">
+            ${Array(4).fill(0).map(() => `
+              <div class="skeleton h-4 rounded w-3/4"></div>
+            `).join('')}
+          </div>
+        `;
+      }
+    }
+
+    // Progress tracker for bulk operations
+    function showProgress(current, total, message = '') {
+      const percentage = Math.round((current / total) * 100);
+      showLoading(`${message} (${current}/${total}) - ${percentage}%`);
+    }
+
     let currentUser = null;
     let allMembers = {Individual: [], Family: []};
 
@@ -979,6 +1136,10 @@
     }
 
     function loadStats() {
+      // Show skeleton loaders
+      showSkeleton('recentActivities', 'text');
+      showSkeleton('birthdaysContainer', 'card');
+
       google.script.run
         .withSuccessHandler(function(data) {
           if (data) {
@@ -998,6 +1159,9 @@
             document.getElementById('recentActivities').innerHTML = activitiesHtml || '<p class="text-gray-500 text-sm">No recent activities</p>';
           }
         })
+        .withFailureHandler(function(error) {
+          document.getElementById('recentActivities').innerHTML = '<p class="text-red-500 text-sm">Failed to load activities</p>';
+        })
         .getDashboardStats();
 
       // Load birthdays
@@ -1012,6 +1176,9 @@
           `).join('');
           document.getElementById('birthdaysContainer').innerHTML = birthdaysHtml || '<p class="text-gray-500">No birthdays this month</p>';
         })
+        .withFailureHandler(function(error) {
+          document.getElementById('birthdaysContainer').innerHTML = '<p class="text-red-500 text-sm">Failed to load birthdays</p>';
+        })
         .getBirthdaysThisMonth();
     }
 
@@ -1025,6 +1192,9 @@
       const institutionFilter = document.getElementById(`filter${type}Institution`)?.value.toLowerCase() || '';
       const dateFrom = document.getElementById(`filter${type}DateFrom`)?.value || '';
       const dateTo = document.getElementById(`filter${type}DateTo`)?.value || '';
+
+      // Show skeleton loader
+      showSkeleton(`${type.toLowerCase()}MembersContainer`, 'table');
 
       google.script.run
         .withSuccessHandler(function(members) {
@@ -1067,6 +1237,10 @@
           }
 
           displayMembers(type, filteredMembers);
+        })
+        .withFailureHandler(function(error) {
+          const container = document.getElementById(`${type.toLowerCase()}MembersContainer`);
+          container.innerHTML = `<p class="text-red-500">Failed to load members: ${error.message}</p>`;
         })
         .getMembers(type, status);
     }
@@ -1430,19 +1604,27 @@
 
       let completed = 0;
       let failed = 0;
+      const total = selected.length;
+
+      // Show progress
+      showProgress(0, total, 'Approving members');
 
       selected.forEach(member => {
         google.script.run
           .withSuccessHandler(function(response) {
             completed++;
+            showProgress(completed + failed, total, 'Approving members');
             if (completed + failed === selected.length) {
+              hideLoading();
               showAlert(`Bulk approve completed: ${completed} success, ${failed} failed`, completed === selected.length ? 'success' : 'error');
               loadMembers(type);
             }
           })
           .withFailureHandler(function(error) {
             failed++;
+            showProgress(completed + failed, total, 'Approving members');
             if (completed + failed === selected.length) {
+              hideLoading();
               showAlert(`Bulk approve completed: ${completed} success, ${failed} failed`, 'error');
               loadMembers(type);
             }
@@ -1465,19 +1647,27 @@
 
       let completed = 0;
       let failed = 0;
+      const total = selected.length;
+
+      // Show progress
+      showProgress(0, total, 'Rejecting members');
 
       selected.forEach(member => {
         google.script.run
           .withSuccessHandler(function(response) {
             completed++;
+            showProgress(completed + failed, total, 'Rejecting members');
             if (completed + failed === selected.length) {
+              hideLoading();
               showAlert(`Bulk reject completed: ${completed} success, ${failed} failed`, completed === selected.length ? 'success' : 'error');
               loadMembers(type);
             }
           })
           .withFailureHandler(function(error) {
             failed++;
+            showProgress(completed + failed, total, 'Rejecting members');
             if (completed + failed === selected.length) {
+              hideLoading();
               showAlert(`Bulk reject completed: ${completed} success, ${failed} failed`, 'error');
               loadMembers(type);
             }
@@ -1501,6 +1691,9 @@
 
       if (!confirm(`Send email to ${selected.length} member(s)?`)) return;
 
+      // Show loading
+      showLoading(`Sending bulk email to ${selected.length} members...`);
+
       const emailData = {
         recipients: selected.map(m => m.email),
         subject: subject,
@@ -1510,6 +1703,7 @@
 
       google.script.run
         .withSuccessHandler(function(response) {
+          hideLoading();
           if (response.success) {
             showAlert(`Bulk email sent successfully to ${selected.length} members!`, 'success');
           } else {
@@ -1517,6 +1711,7 @@
           }
         })
         .withFailureHandler(function(error) {
+          hideLoading();
           showAlert('Error sending bulk email: ' + error.message, 'error');
         })
         .sendBulkEmail(emailData);
@@ -1873,8 +2068,11 @@
         orgAddress: document.getElementById('orgAddress').value
       };
 
+      showLoading('Saving organization settings...');
+
       google.script.run
         .withSuccessHandler(function(response) {
+          hideLoading();
           if (response.success) {
             showAlert('Organization settings saved successfully!', 'success');
           } else {
@@ -1882,6 +2080,7 @@
           }
         })
         .withFailureHandler(function(error) {
+          hideLoading();
           showAlert('Error saving settings: ' + error.message, 'error');
         })
         .saveSetting('ORG_SETTINGS', JSON.stringify(settings));
@@ -1891,6 +2090,8 @@
       const individualFee = document.getElementById('individualFee').value;
       const familyFee = document.getElementById('familyFee').value;
       const lateFee = document.getElementById('lateFee').value;
+
+      showLoading('Updating fee structure...');
 
       Promise.all([
         new Promise((resolve, reject) => {
@@ -1912,8 +2113,10 @@
             .updateFeeStructure({key: 'LATE_FEE', value: lateFee, description: 'Late payment fee'});
         })
       ]).then(() => {
+        hideLoading();
         showAlert('Fee structure updated successfully!', 'success');
       }).catch(error => {
+        hideLoading();
         showAlert('Error updating fee structure: ' + error.message, 'error');
       });
     }
@@ -1926,8 +2129,11 @@
         autoEmails: document.getElementById('autoEmails').checked
       };
 
+      showLoading('Saving email settings...');
+
       google.script.run
         .withSuccessHandler(function(response) {
+          hideLoading();
           if (response.success) {
             showAlert('Email settings saved successfully!', 'success');
           } else {
@@ -1935,6 +2141,7 @@
           }
         })
         .withFailureHandler(function(error) {
+          hideLoading();
           showAlert('Error saving settings: ' + error.message, 'error');
         })
         .saveSetting('EMAIL_SETTINGS', JSON.stringify(settings));
@@ -1948,8 +2155,11 @@
         enableNotifications: document.getElementById('enableNotifications').checked
       };
 
+      showLoading('Saving system preferences...');
+
       google.script.run
         .withSuccessHandler(function(response) {
+          hideLoading();
           if (response.success) {
             showAlert('System preferences saved successfully!', 'success');
           } else {
@@ -1957,6 +2167,7 @@
           }
         })
         .withFailureHandler(function(error) {
+          hideLoading();
           showAlert('Error saving preferences: ' + error.message, 'error');
         })
         .saveSetting('SYSTEM_PREFS', JSON.stringify(settings));
@@ -1965,8 +2176,11 @@
     function createBackupNow() {
       if (!confirm('Create a backup of all data now?')) return;
 
+      showLoading('Creating backup...');
+
       google.script.run
         .withSuccessHandler(function(response) {
+          hideLoading();
           if (response.success) {
             showAlert('Backup created successfully! URL: ' + response.backupURL, 'success');
             document.getElementById('lastBackupDate').textContent = new Date().toLocaleString();
@@ -1975,6 +2189,7 @@
           }
         })
         .withFailureHandler(function(error) {
+          hideLoading();
           showAlert('Error creating backup: ' + error.message, 'error');
         })
         .createBackup();
