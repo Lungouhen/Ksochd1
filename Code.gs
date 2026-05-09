@@ -1917,6 +1917,58 @@ function updateFeeStructure(feeData) {
   }
 }
 
+// General settings save function
+function saveSetting(key, value, description = '') {
+  try {
+    const session = getSession();
+    if (!session || !session.authenticated) {
+      throw new Error('Unauthorized');
+    }
+
+    const sheet = getSheet('Settings');
+    const data = sheet.getDataRange().getValues();
+
+    // Find and update or create
+    let found = false;
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === key) {
+        sheet.getRange(i + 1, 2).setValue(value);
+        sheet.getRange(i + 1, 4).setValue(new Date());
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      sheet.appendRow([key, value, description, new Date()]);
+    }
+
+    logAction('SETTINGS_SAVE', session.email, `Saved setting: ${key}`);
+
+    return {success: true, message: 'Setting saved successfully'};
+  } catch (error) {
+    logAction('ERROR', session?.email || 'System', `Failed to save setting: ${error.message}`);
+    return {success: false, message: error.message};
+  }
+}
+
+// Get setting value
+function getSetting(key, defaultValue = '') {
+  try {
+    const sheet = getSheet('Settings');
+    const data = sheet.getDataRange().getValues();
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === key) {
+        return data[i][1] || defaultValue;
+      }
+    }
+    return defaultValue;
+  } catch (error) {
+    return defaultValue;
+  }
+}
+
 // Feature 18: ID Card Generation (Data)
 function generateMemberIDCard(enrollmentNo) {
   try {

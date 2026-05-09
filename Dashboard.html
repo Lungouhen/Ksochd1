@@ -137,6 +137,9 @@
           <button onclick="switchTab('tools')" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
             <i class="fas fa-tools mr-2"></i> Tools
           </button>
+          <button onclick="switchTab('settings')" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+            <i class="fas fa-cog mr-2"></i> Settings
+          </button>
         </nav>
       </div>
 
@@ -449,6 +452,197 @@
               </button>
               <button onclick="openJobBoardModal()" class="w-full bg-cyan-600 text-white py-2 rounded hover:bg-cyan-700">
                 <i class="fas fa-briefcase mr-2"></i> Job Board
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Tab -->
+      <div id="settingsTab" class="tab-content p-6">
+        <h2 class="text-2xl font-bold mb-6">
+          <i class="fas fa-cog text-gray-700 mr-2"></i> System Settings
+        </h2>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Organization Settings -->
+          <div class="bg-white border rounded-lg p-6">
+            <h3 class="font-bold mb-4 flex items-center">
+              <i class="fas fa-building text-blue-600 mr-2"></i> Organization Info
+            </h3>
+            <form id="orgSettingsForm" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Organization Name</label>
+                <input type="text" id="orgName" value="Kuki Students' Organisation (KSO) Chandigarh" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Contact Email</label>
+                <input type="email" id="orgEmail" placeholder="contact@ksocandigarh.org" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Contact Phone</label>
+                <input type="tel" id="orgPhone" placeholder="+91 XXXXX XXXXX" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Address</label>
+                <textarea id="orgAddress" rows="3" class="w-full px-4 py-2 border rounded-lg" placeholder="Organization address"></textarea>
+              </div>
+              <button type="button" onclick="saveOrgSettings()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                <i class="fas fa-save mr-2"></i> Save Organization Info
+              </button>
+            </form>
+          </div>
+
+          <!-- Fee Structure Settings -->
+          <div class="bg-white border rounded-lg p-6">
+            <h3 class="font-bold mb-4 flex items-center">
+              <i class="fas fa-money-bill-wave text-green-600 mr-2"></i> Fee Structure
+            </h3>
+            <form id="feeSettingsForm" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Individual Membership Fee (₹)</label>
+                <input type="number" id="individualFee" value="500" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Family Membership Fee (₹)</label>
+                <input type="number" id="familyFee" value="1500" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Late Fee (₹)</label>
+                <input type="number" id="lateFee" value="100" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Currency</label>
+                <select id="currency" class="w-full px-4 py-2 border rounded-lg">
+                  <option value="INR">Indian Rupee (₹)</option>
+                  <option value="USD">US Dollar ($)</option>
+                  <option value="EUR">Euro (€)</option>
+                </select>
+              </div>
+              <button type="button" onclick="saveFeeSettings()" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+                <i class="fas fa-save mr-2"></i> Save Fee Structure
+              </button>
+            </form>
+          </div>
+
+          <!-- Email Settings -->
+          <div class="bg-white border rounded-lg p-6">
+            <h3 class="font-bold mb-4 flex items-center">
+              <i class="fas fa-envelope text-purple-600 mr-2"></i> Email Configuration
+            </h3>
+            <form id="emailSettingsForm" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">From Email</label>
+                <input type="email" id="fromEmail" placeholder="noreply@ksocandigarh.org" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">From Name</label>
+                <input type="text" id="fromName" value="KSO Chandigarh" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Email Signature</label>
+                <textarea id="emailSignature" rows="4" class="w-full px-4 py-2 border rounded-lg" placeholder="Best regards,&#10;KSO Chandigarh Team"></textarea>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" id="autoEmails" class="mr-2">
+                <label class="text-sm">Enable automatic email notifications</label>
+              </div>
+              <button type="button" onclick="saveEmailSettings()" class="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700">
+                <i class="fas fa-save mr-2"></i> Save Email Settings
+              </button>
+            </form>
+          </div>
+
+          <!-- System Preferences -->
+          <div class="bg-white border rounded-lg p-6">
+            <h3 class="font-bold mb-4 flex items-center">
+              <i class="fas fa-sliders-h text-orange-600 mr-2"></i> System Preferences
+            </h3>
+            <form id="systemPrefsForm" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Date Format</label>
+                <select id="dateFormat" class="w-full px-4 py-2 border rounded-lg">
+                  <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                  <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                  <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Time Zone</label>
+                <select id="timezone" class="w-full px-4 py-2 border rounded-lg">
+                  <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                  <option value="UTC">UTC</option>
+                  <option value="America/New_York">America/New_York (EST)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Items Per Page</label>
+                <select id="itemsPerPage" class="w-full px-4 py-2 border rounded-lg">
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" id="enableNotifications" class="mr-2" checked>
+                <label class="text-sm">Enable in-app notifications</label>
+              </div>
+              <button type="button" onclick="saveSystemPrefs()" class="w-full bg-orange-600 text-white py-2 rounded hover:bg-orange-700">
+                <i class="fas fa-save mr-2"></i> Save Preferences
+              </button>
+            </form>
+          </div>
+
+          <!-- Backup & Security -->
+          <div class="bg-white border rounded-lg p-6">
+            <h3 class="font-bold mb-4 flex items-center">
+              <i class="fas fa-shield-alt text-red-600 mr-2"></i> Backup & Security
+            </h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Last Backup</label>
+                <p class="text-sm text-gray-600" id="lastBackupDate">Never</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Auto Backup Frequency</label>
+                <select id="backupFrequency" class="w-full px-4 py-2 border rounded-lg">
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="manual">Manual Only</option>
+                </select>
+              </div>
+              <button type="button" onclick="createBackupNow()" class="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700">
+                <i class="fas fa-download mr-2"></i> Create Backup Now
+              </button>
+              <button type="button" onclick="saveBackupSettings()" class="w-full bg-gray-600 text-white py-2 rounded hover:bg-gray-700">
+                <i class="fas fa-save mr-2"></i> Save Backup Settings
+              </button>
+            </div>
+          </div>
+
+          <!-- Advanced Settings -->
+          <div class="bg-white border rounded-lg p-6">
+            <h3 class="font-bold mb-4 flex items-center">
+              <i class="fas fa-cogs text-gray-700 mr-2"></i> Advanced Settings
+            </h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Enrollment Number Format</label>
+                <input type="text" id="enrollmentFormat" value="KSO{TYPE}{YEAR}-{NUM}" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g., KSOI2026-0001">
+                <p class="text-xs text-gray-500 mt-1">Variables: {TYPE}, {YEAR}, {NUM}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Receipt Number Format</label>
+                <input type="text" id="receiptFormat" value="REC{YEAR}-{NUM}" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g., REC2026-00001">
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" id="maintenanceMode" class="mr-2">
+                <label class="text-sm">Enable Maintenance Mode (public pages disabled)</label>
+              </div>
+              <button type="button" onclick="saveAdvancedSettings()" class="w-full bg-gray-600 text-white py-2 rounded hover:bg-gray-700">
+                <i class="fas fa-save mr-2"></i> Save Advanced Settings
               </button>
             </div>
           </div>
@@ -1341,6 +1535,160 @@
     function openVolunteerModal() { alert('Volunteer hours - to be implemented'); }
     function openJobBoardModal() { alert('Job board - to be implemented'); }
     function exportAllData() { exportData(); }
+
+    // Settings functions
+    function saveOrgSettings() {
+      const settings = {
+        orgName: document.getElementById('orgName').value,
+        orgEmail: document.getElementById('orgEmail').value,
+        orgPhone: document.getElementById('orgPhone').value,
+        orgAddress: document.getElementById('orgAddress').value
+      };
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            showAlert('Organization settings saved successfully!', 'success');
+          } else {
+            showAlert('Failed to save settings: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          showAlert('Error saving settings: ' + error.message, 'error');
+        })
+        .saveSetting('ORG_SETTINGS', JSON.stringify(settings));
+    }
+
+    function saveFeeSettings() {
+      const individualFee = document.getElementById('individualFee').value;
+      const familyFee = document.getElementById('familyFee').value;
+      const lateFee = document.getElementById('lateFee').value;
+
+      Promise.all([
+        new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            .updateFeeStructure({key: 'INDIVIDUAL_FEE', value: individualFee, description: 'Individual membership fee'});
+        }),
+        new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            .updateFeeStructure({key: 'FAMILY_FEE', value: familyFee, description: 'Family membership fee'});
+        }),
+        new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            .updateFeeStructure({key: 'LATE_FEE', value: lateFee, description: 'Late payment fee'});
+        })
+      ]).then(() => {
+        showAlert('Fee structure updated successfully!', 'success');
+      }).catch(error => {
+        showAlert('Error updating fee structure: ' + error.message, 'error');
+      });
+    }
+
+    function saveEmailSettings() {
+      const settings = {
+        fromEmail: document.getElementById('fromEmail').value,
+        fromName: document.getElementById('fromName').value,
+        emailSignature: document.getElementById('emailSignature').value,
+        autoEmails: document.getElementById('autoEmails').checked
+      };
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            showAlert('Email settings saved successfully!', 'success');
+          } else {
+            showAlert('Failed to save settings: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          showAlert('Error saving settings: ' + error.message, 'error');
+        })
+        .saveSetting('EMAIL_SETTINGS', JSON.stringify(settings));
+    }
+
+    function saveSystemPrefs() {
+      const settings = {
+        dateFormat: document.getElementById('dateFormat').value,
+        timezone: document.getElementById('timezone').value,
+        itemsPerPage: document.getElementById('itemsPerPage').value,
+        enableNotifications: document.getElementById('enableNotifications').checked
+      };
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            showAlert('System preferences saved successfully!', 'success');
+          } else {
+            showAlert('Failed to save preferences: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          showAlert('Error saving preferences: ' + error.message, 'error');
+        })
+        .saveSetting('SYSTEM_PREFS', JSON.stringify(settings));
+    }
+
+    function createBackupNow() {
+      if (!confirm('Create a backup of all data now?')) return;
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            showAlert('Backup created successfully! URL: ' + response.backupURL, 'success');
+            document.getElementById('lastBackupDate').textContent = new Date().toLocaleString();
+          } else {
+            showAlert('Backup failed: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          showAlert('Error creating backup: ' + error.message, 'error');
+        })
+        .createBackup();
+    }
+
+    function saveBackupSettings() {
+      const frequency = document.getElementById('backupFrequency').value;
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            showAlert('Backup settings saved successfully!', 'success');
+          } else {
+            showAlert('Failed to save settings: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          showAlert('Error saving settings: ' + error.message, 'error');
+        })
+        .saveSetting('BACKUP_FREQUENCY', frequency);
+    }
+
+    function saveAdvancedSettings() {
+      const settings = {
+        enrollmentFormat: document.getElementById('enrollmentFormat').value,
+        receiptFormat: document.getElementById('receiptFormat').value,
+        maintenanceMode: document.getElementById('maintenanceMode').checked
+      };
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            showAlert('Advanced settings saved successfully!', 'success');
+          } else {
+            showAlert('Failed to save settings: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          showAlert('Error saving settings: ' + error.message, 'error');
+        })
+        .saveSetting('ADVANCED_SETTINGS', JSON.stringify(settings));
+    }
 
     // Initialize on page load
     window.onload = init;
