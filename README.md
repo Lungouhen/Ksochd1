@@ -2,9 +2,11 @@
 
 [![Google Apps Script](https://img.shields.io/badge/Google%20Apps%20Script-4285F4?style=flat&logo=google&logoColor=white)](https://developers.google.com/apps-script)
 [![Status](https://img.shields.io/badge/Status-Production%20Ready-success)](https://github.com)
-[![Session](https://img.shields.io/badge/Session-2026--2027-blue)](https://github.com)
+[![Version](https://img.shields.io/badge/Version-1.1-blue)](https://github.com)
 
 Complete professional membership management portal for **Kuki Students' Organisation (KSO) Chandigarh** built with Google Apps Script, Google Sheets, and modern web technologies.
+
+**🆕 NEW in v1.1:** Dynamic term management, enhanced admin system, and term-based member tracking!
 
 ---
 
@@ -13,19 +15,30 @@ Complete professional membership management portal for **Kuki Students' Organisa
 ### Core Membership Management
 - ✅ **Individual & Family Membership Forms** with complete validation
 - ✅ **Photo Upload** with Google Drive integration
-- ✅ **Auto-generated Enrollment Numbers** (KSOI2026-XXXX, KSOF2026-XXXX)
+- ✅ **Auto-generated Enrollment Numbers** with dynamic year (KSOI2027-XXXX)
 - ✅ **Member Approval Workflow** (Pending → Approved/Rejected)
 - ✅ **Email Notifications** (Registration, Approval, Payment)
 - ✅ **Payment Processing** with automatic receipt generation
+- 🆕 **Term-Based Member Tracking** - Associate members with organizational terms
 
 ### Admin Dashboard
-- 🔐 **Role-based Access Control** (Admin, President, General Secretary, Treasurer)
+- 🔐 **Role-based Access Control** with 9 admin roles
 - 📊 **Real-time Statistics** and analytics
-- 👥 **Member Management** with search, filter, and export
+- 👥 **Member Management** with search, filter by term, and export
 - 💰 **Financial Management** with payment tracking
 - 📅 **Event Management** system
 - 📢 **Announcement System**
 - 📈 **Reports & Analytics**
+- 🆕 **Term Management** - Create and manage multiple organizational terms
+- 🆕 **Enhanced Admin System** - Custom designations and term associations
+
+### Term Management (NEW!)
+- ✨ **Dynamic Terms** - No longer hardcoded to 2026-2027
+- ✨ **Multiple Terms** - Create and manage different organizational years
+- ✨ **Term Switching** - Switch active terms with one click
+- ✨ **Term-Based Filtering** - View members by specific terms
+- ✨ **Historical Data** - Preserve member data across terms
+- ✨ **Smart Enrollment** - Auto-generate numbers based on active term year
 
 ### 20+ Enhanced Features
 1. **Event Management** - Create and track organizational events
@@ -56,6 +69,10 @@ Complete professional membership management portal for **Kuki Students' Organisa
 ---
 
 ## 🚀 Quick Start
+
+### ⚠️ Updating from v1.0?
+
+If you're updating an existing installation, please read **[MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md)** first!
 
 ### Prerequisites
 - Google Account
