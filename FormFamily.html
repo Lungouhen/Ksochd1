@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Family Membership</title>
+  </head>
+  <body class="bg-slate-50">
+    <div class="max-w-5xl mx-auto p-4 md:p-8">
+      <a href="?page=home" class="text-blue-600">← Back to Home</a>
+      <h1 class="text-2xl font-bold mt-2">Family Membership Form</h1>
+      <form id="familyForm" class="mt-6 bg-white rounded-xl border border-slate-200 p-6 grid md:grid-cols-2 gap-4">
+        <input class="border rounded p-2" name="name" placeholder="Primary Applicant Name" required>
+        <input class="border rounded p-2" name="fatherName" placeholder="Father Name" required>
+        <input class="border rounded p-2" name="motherName" placeholder="Mother Name" required>
+        <select class="border rounded p-2" name="gender" required>
+          <option value="">Gender</option><option>Male</option><option>Female</option><option>Other</option>
+        </select>
+        <input class="border rounded p-2" name="dob" type="date" required>
+        <select class="border rounded p-2" name="maritalStatus" required>
+          <option value="">Marital Status</option><option>Single</option><option>Married</option><option>Other</option>
+        </select>
+        <input class="border rounded p-2" name="email" type="email" placeholder="Email" required>
+        <input class="border rounded p-2" name="phone" placeholder="Phone" required>
+        <input class="border rounded p-2" name="course" placeholder="Course">
+        <input class="border rounded p-2" name="institution" placeholder="Institution">
+        <input class="border rounded p-2 md:col-span-2" name="localGuardian" placeholder="Local Guardian">
+        <textarea class="border rounded p-2" name="officeAddress" placeholder="Office Address"></textarea>
+        <textarea class="border rounded p-2" name="residentialAddress" placeholder="Residential Address"></textarea>
+        <textarea class="border rounded p-2 md:col-span-2" name="permanentAddress" placeholder="Permanent Address"></textarea>
+
+        <div class="md:col-span-2">
+          <h2 class="font-semibold">Relatives / Dependents (up to 4)</h2>
+        </div>
+        <input class="border rounded p-2" name="relative1Name" placeholder="Relative 1 Name">
+        <input class="border rounded p-2" name="relative1Relation" placeholder="Relative 1 Relation">
+        <input class="border rounded p-2" name="relative2Name" placeholder="Relative 2 Name">
+        <input class="border rounded p-2" name="relative2Relation" placeholder="Relative 2 Relation">
+        <input class="border rounded p-2" name="relative3Name" placeholder="Relative 3 Name">
+        <input class="border rounded p-2" name="relative3Relation" placeholder="Relative 3 Relation">
+        <input class="border rounded p-2" name="relative4Name" placeholder="Relative 4 Name">
+        <input class="border rounded p-2" name="relative4Relation" placeholder="Relative 4 Relation">
+
+        <textarea class="border rounded p-2 md:col-span-2" name="notes" placeholder="Notes"></textarea>
+        <div class="md:col-span-2">
+          <label class="font-medium">Photo Upload</label>
+          <input class="block mt-1" id="photo" type="file" accept="image/*">
+        </div>
+        <button class="md:col-span-2 bg-blue-600 text-white py-2 rounded hover:bg-blue-700" type="submit">Submit Family Application</button>
+        <div id="message" class="md:col-span-2 text-sm"></div>
+      </form>
+    </div>
+
+    <script>
+      const form = document.getElementById('familyForm');
+      const msg = document.getElementById('message');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        msg.textContent = 'Submitting...';
+        msg.className = 'md:col-span-2 text-sm text-blue-600';
+
+        const data = Object.fromEntries(new FormData(form).entries());
+        const photoFile = document.getElementById('photo').files[0];
+        if (photoFile) {
+          data.photoBase64 = await toDataURL(photoFile);
+          data.photoName = photoFile.name;
+        }
+
+        google.script.run
+          .withSuccessHandler((res) => {
+            if (res.success) {
+              msg.textContent = `${res.message} Enrollment No: ${res.enrollmentNo}`;
+              msg.className = 'md:col-span-2 text-sm text-green-700';
+              form.reset();
+            } else {
+              msg.textContent = res.message || 'Submission failed';
+              msg.className = 'md:col-span-2 text-sm text-red-700';
+            }
+          })
+          .withFailureHandler((err) => {
+            msg.textContent = err.message || 'Submission failed.';
+            msg.className = 'md:col-span-2 text-sm text-red-700';
+          })
+          .submitFamily(data);
+      });
+
+      function toDataURL(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+    </script>
+  </body>
+</html>
