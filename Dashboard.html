@@ -196,11 +196,18 @@
 
       <!-- Individual Members Tab -->
       <div id="individualTab" class="tab-content p-6">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold">Individual Members</h2>
-          <div class="flex space-x-3">
-            <input type="text" id="searchIndividual" placeholder="Search members..."
-              class="px-4 py-2 border rounded-lg" onkeyup="searchMembers('Individual')">
+        <div class="mb-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">Individual Members</h2>
+            <button onclick="toggleAdvancedSearch('individual')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              <i class="fas fa-filter mr-2"></i> Advanced Search
+            </button>
+          </div>
+
+          <!-- Basic Search Bar -->
+          <div class="flex space-x-3 mb-4">
+            <input type="text" id="searchIndividual" placeholder="Search by name, email, phone, enrollment..."
+              class="flex-1 px-4 py-2 border rounded-lg" onkeyup="searchMembers('Individual')">
             <select id="filterIndividualTerm" onchange="loadMembers('Individual')" class="px-4 py-2 border rounded-lg">
               <option value="">All Terms</option>
             </select>
@@ -211,6 +218,48 @@
               <option value="Rejected">Rejected</option>
             </select>
           </div>
+
+          <!-- Advanced Search Panel (Hidden by default) -->
+          <div id="advancedSearchIndividual" class="hidden bg-gray-50 p-4 rounded-lg border mb-4">
+            <h3 class="font-bold mb-3">Advanced Filters</h3>
+            <div class="grid md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium mb-1">Payment Status</label>
+                <select id="filterIndividualPayment" onchange="loadMembers('Individual')" class="w-full px-4 py-2 border rounded-lg">
+                  <option value="">All</option>
+                  <option value="paid">Paid</option>
+                  <option value="pending">Pending</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Gender</label>
+                <select id="filterIndividualGender" onchange="loadMembers('Individual')" class="w-full px-4 py-2 border rounded-lg">
+                  <option value="">All</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Institution</label>
+                <input type="text" id="filterIndividualInstitution" placeholder="Filter by institution"
+                  class="w-full px-4 py-2 border rounded-lg" onkeyup="loadMembers('Individual')">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Date From</label>
+                <input type="date" id="filterIndividualDateFrom" onchange="loadMembers('Individual')" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Date To</label>
+                <input type="date" id="filterIndividualDateTo" onchange="loadMembers('Individual')" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div class="flex items-end">
+                <button onclick="clearAdvancedFilters('individual')" class="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+                  <i class="fas fa-times mr-2"></i> Clear Filters
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div id="individualMembersContainer" class="overflow-x-auto">
@@ -220,11 +269,18 @@
 
       <!-- Family Members Tab -->
       <div id="familyTab" class="tab-content p-6">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold">Family Members</h2>
-          <div class="flex space-x-3">
-            <input type="text" id="searchFamily" placeholder="Search members..."
-              class="px-4 py-2 border rounded-lg" onkeyup="searchMembers('Family')">
+        <div class="mb-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">Family Members</h2>
+            <button onclick="toggleAdvancedSearch('family')" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+              <i class="fas fa-filter mr-2"></i> Advanced Search
+            </button>
+          </div>
+
+          <!-- Basic Search Bar -->
+          <div class="flex space-x-3 mb-4">
+            <input type="text" id="searchFamily" placeholder="Search by name, email, phone, enrollment..."
+              class="flex-1 px-4 py-2 border rounded-lg" onkeyup="searchMembers('Family')">
             <select id="filterFamilyTerm" onchange="loadMembers('Family')" class="px-4 py-2 border rounded-lg">
               <option value="">All Terms</option>
             </select>
@@ -234,6 +290,48 @@
               <option value="Approved">Approved</option>
               <option value="Rejected">Rejected</option>
             </select>
+          </div>
+
+          <!-- Advanced Search Panel (Hidden by default) -->
+          <div id="advancedSearchFamily" class="hidden bg-gray-50 p-4 rounded-lg border mb-4">
+            <h3 class="font-bold mb-3">Advanced Filters</h3>
+            <div class="grid md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium mb-1">Payment Status</label>
+                <select id="filterFamilyPayment" onchange="loadMembers('Family')" class="w-full px-4 py-2 border rounded-lg">
+                  <option value="">All</option>
+                  <option value="paid">Paid</option>
+                  <option value="pending">Pending</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Gender</label>
+                <select id="filterFamilyGender" onchange="loadMembers('Family')" class="w-full px-4 py-2 border rounded-lg">
+                  <option value="">All</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Institution</label>
+                <input type="text" id="filterFamilyInstitution" placeholder="Filter by institution"
+                  class="w-full px-4 py-2 border rounded-lg" onkeyup="loadMembers('Family')">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Date From</label>
+                <input type="date" id="filterFamilyDateFrom" onchange="loadMembers('Family')" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Date To</label>
+                <input type="date" id="filterFamilyDateTo" onchange="loadMembers('Family')" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div class="flex items-end">
+                <button onclick="clearAdvancedFilters('family')" class="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+                  <i class="fas fa-times mr-2"></i> Clear Filters
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -883,14 +981,51 @@
       const status = document.getElementById(`filter${type}Status`)?.value || '';
       const term = document.getElementById(`filter${type}Term`)?.value || '';
 
+      // Get advanced filters
+      const paymentFilter = document.getElementById(`filter${type}Payment`)?.value || '';
+      const genderFilter = document.getElementById(`filter${type}Gender`)?.value || '';
+      const institutionFilter = document.getElementById(`filter${type}Institution`)?.value.toLowerCase() || '';
+      const dateFrom = document.getElementById(`filter${type}DateFrom`)?.value || '';
+      const dateTo = document.getElementById(`filter${type}DateTo`)?.value || '';
+
       google.script.run
         .withSuccessHandler(function(members) {
           allMembers[type] = members;
 
-          // Apply term filter client-side if term is selected
+          // Apply client-side filters
           let filteredMembers = members;
+
+          // Term filter
           if (term) {
-            filteredMembers = members.filter(m => m.Term === term);
+            filteredMembers = filteredMembers.filter(m => m.Term === term);
+          }
+
+          // Payment filter
+          if (paymentFilter) {
+            filteredMembers = filteredMembers.filter(m => {
+              const hasPaid = m.AmountPaid > 0;
+              return paymentFilter === 'paid' ? hasPaid : !hasPaid;
+            });
+          }
+
+          // Gender filter
+          if (genderFilter) {
+            filteredMembers = filteredMembers.filter(m => m.Gender === genderFilter);
+          }
+
+          // Institution filter
+          if (institutionFilter) {
+            filteredMembers = filteredMembers.filter(m =>
+              (m.Institution || '').toLowerCase().includes(institutionFilter)
+            );
+          }
+
+          // Date range filter
+          if (dateFrom) {
+            filteredMembers = filteredMembers.filter(m => new Date(m.SubmissionDate) >= new Date(dateFrom));
+          }
+          if (dateTo) {
+            filteredMembers = filteredMembers.filter(m => new Date(m.SubmissionDate) <= new Date(dateTo));
           }
 
           displayMembers(type, filteredMembers);
@@ -1192,6 +1327,26 @@
         member.Phone.includes(query)
       );
       displayMembers(type, filtered);
+    }
+
+    // Advanced search toggle
+    function toggleAdvancedSearch(type) {
+      const typeCapital = type.charAt(0).toUpperCase() + type.slice(1);
+      const panel = document.getElementById(`advancedSearch${typeCapital}`);
+      panel.classList.toggle('hidden');
+    }
+
+    // Clear advanced filters
+    function clearAdvancedFilters(type) {
+      const typeCapital = type.charAt(0).toUpperCase() + type.slice(1);
+
+      document.getElementById(`filter${typeCapital}Payment`).value = '';
+      document.getElementById(`filter${typeCapital}Gender`).value = '';
+      document.getElementById(`filter${typeCapital}Institution`).value = '';
+      document.getElementById(`filter${typeCapital}DateFrom`).value = '';
+      document.getElementById(`filter${typeCapital}DateTo`).value = '';
+
+      loadMembers(typeCapital);
     }
 
     // ============ ADMIN MANAGEMENT FUNCTIONS ============
