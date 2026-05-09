@@ -11,6 +11,20 @@
     .tab-content.active { display: block; }
     .modal { display: none; }
     .modal.active { display: flex; }
+    .clickable-card {
+      transition: all 0.3s ease;
+    }
+    .clickable-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+    .clickable-link {
+      transition: all 0.2s ease;
+    }
+    .clickable-link:hover {
+      text-decoration: underline;
+      transform: scale(1.05);
+    }
   </style>
 </head>
 <body class="bg-gray-100">
@@ -147,19 +161,19 @@
               <i class="fas fa-bolt text-yellow-600 mr-2"></i> Quick Actions
             </h3>
             <div class="space-y-3">
-              <button onclick="switchTab('individual')" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">
+              <button onclick="switchTab('individual'); setTimeout(() => { document.getElementById('filterIndividualStatus').value='Pending'; loadMembers('Individual'); }, 100);" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition transform hover:scale-105 cursor-pointer">
                 <i class="fas fa-check-circle mr-2"></i> Review Pending Applications
               </button>
-              <button onclick="openRecordPaymentModal()" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition">
+              <button onclick="openRecordPaymentModal()" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition transform hover:scale-105 cursor-pointer">
                 <i class="fas fa-rupee-sign mr-2"></i> Record Payment
               </button>
-              <button onclick="switchTab('events')" class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition">
+              <button onclick="switchTab('events')" class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition transform hover:scale-105 cursor-pointer">
                 <i class="fas fa-calendar-plus mr-2"></i> Create Event
               </button>
-              <button onclick="switchTab('announcements')" class="w-full bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 transition">
+              <button onclick="switchTab('announcements')" class="w-full bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 transition transform hover:scale-105 cursor-pointer">
                 <i class="fas fa-bullhorn mr-2"></i> Post Announcement
               </button>
-              <button onclick="exportData()" class="w-full bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-700 transition">
+              <button onclick="exportData()" class="w-full bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-700 transition transform hover:scale-105 cursor-pointer">
                 <i class="fas fa-file-excel mr-2"></i> Export Data
               </button>
             </div>

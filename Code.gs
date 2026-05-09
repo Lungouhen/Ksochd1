@@ -71,6 +71,16 @@ function getTermSetting(key, defaultValue) {
 }
 
 // ==================== WEB APP ROUTING ====================
+// Multi-page navigation system using URL parameters
+// All pages are accessed via: scriptURL?page=PAGE_NAME
+//
+// Public pages (no authentication):
+//   - home, form-individual, form-family
+// Admin pages (require authentication):
+//   - login, dashboard, individual-list, family-list, all-members, payments, settings, receipt-view
+//
+// Navigation is handled via JavaScript navigateTo(page) function in each HTML file
+// which constructs the proper URL: ScriptApp.getService().getUrl() + "?page=" + pageName
 
 function doGet(e) {
   const page = e.parameter.page || 'home';
@@ -128,6 +138,11 @@ function getPageFile(page) {
 
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
+
+// Get the web app URL for use in templates
+function getAppUrl() {
+  return ScriptApp.getService().getUrl();
 }
 
 // ==================== SHEET MANAGEMENT ====================
