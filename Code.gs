@@ -16,13 +16,59 @@
 const CONFIG = {
   SHEET_ID: PropertiesService.getScriptProperties().getProperty('SHEET_ID') || SpreadsheetApp.getActiveSpreadsheet().getId(),
   ORGANIZATION: 'Kuki Students\' Organisation (KSO) Chandigarh',
-  SESSION: '2026-2027',
+  SESSION: getActiveTerm(), // Dynamic session from Terms sheet
   DRIVE_FOLDER_ID: PropertiesService.getScriptProperties().getProperty('DRIVE_FOLDER_ID') || '',
   APP_URL: ScriptApp.getService().getUrl(),
-  INDIVIDUAL_FEE: 500,
-  FAMILY_FEE: 1500,
-  ADMIN_ROLES: ['Admin', 'President', 'General Secretary', 'Treasurer']
+  INDIVIDUAL_FEE: getTermSetting('INDIVIDUAL_FEE', 500),
+  FAMILY_FEE: getTermSetting('FAMILY_FEE', 1500),
+  ADMIN_ROLES: ['Admin', 'President', 'General Secretary', 'Treasurer', 'Vice President', 'Joint Secretary', 'Cultural Secretary', 'Sports Secretary', 'Finance Secretary']
 };
+
+// ==================== TERM MANAGEMENT ====================
+
+function getActiveTerm() {
+  try {
+    const sheet = SpreadsheetApp.openById(CONFIG.SHEET_ID || SpreadsheetApp.getActiveSpreadsheet().getId()).getSheetByName('Terms');
+    if (!sheet) return '2026-2027'; // Default fallback
+
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][4] === true) { // Active column
+        return data[i][1]; // TermName
+      }
+    }
+    return '2026-2027'; // Default fallback
+  } catch (error) {
+    return '2026-2027'; // Default fallback
+  }
+}
+
+function getActiveTermYear() {
+  try {
+    const termName = getActiveTerm();
+    const year = termName.split('-')[0];
+    return parseInt(year) || new Date().getFullYear();
+  } catch (error) {
+    return new Date().getFullYear();
+  }
+}
+
+function getTermSetting(key, defaultValue) {
+  try {
+    const sheet = SpreadsheetApp.openById(CONFIG.SHEET_ID || SpreadsheetApp.getActiveSpreadsheet().getId()).getSheetByName('Settings');
+    if (!sheet) return defaultValue;
+
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === key) {
+        return parseInt(data[i][1]) || defaultValue;
+      }
+    }
+    return defaultValue;
+  } catch (error) {
+    return defaultValue;
+  }
+}
 
 // ==================== WEB APP ROUTING ====================
 
@@ -124,7 +170,8 @@ function getSheetHeaders(sheetName) {
     'Individual': baseHeaders,
     'Family': familyHeaders,
     'Payments': ['Timestamp', 'EnrollmentNo', 'MemberName', 'Amount', 'PaymentMode', 'TransactionRef', 'ReceiptNo', 'RecordedBy', 'Notes'],
-    'Admins': ['Email', 'Password', 'Role', 'FullName', 'Active', 'CreatedDate', 'LastLogin'],
+    'Admins': ['Email', 'Password', 'Role', 'Designation', 'FullName', 'Term', 'Active', 'CreatedDate', 'LastLogin'],
+    'Terms': ['TermID', 'TermName', 'StartDate', 'EndDate', 'Active', 'CreatedDate', 'CreatedBy'],
     'Settings': ['Key', 'Value', 'Description', 'UpdatedDate'],
     'Logs': ['Timestamp', 'Action', 'User', 'Details', 'IPAddress'],
     'Events': ['EventID', 'EventName', 'EventDate', 'Location', 'Description', 'Organizer', 'Status', 'CreatedDate'],
@@ -150,7 +197,7 @@ function getSheetHeaders(sheetName) {
 
 function generateEnrollmentNo(type) {
   const prefix = type === 'Individual' ? 'KSOI' : 'KSOF';
-  const year = 2026;
+  const year = getActiveTermYear();
   const sheet = getSheet(type);
   const lastRow = sheet.getLastRow();
 
@@ -1986,17 +2033,21 @@ function createAdmin(adminData) {
       }
     }
 
+    const activeTerm = getActiveTerm();
+
     sheet.appendRow([
       adminData.email,
       adminData.password,
       adminData.role,
+      adminData.designation || adminData.role, // Designation (can be custom)
       adminData.fullName,
-      true,
+      adminData.term || activeTerm, // Term
+      true, // Active
       new Date(),
-      ''
+      '' // LastLogin
     ]);
 
-    logAction('ADMIN_CREATED', session.email, `New admin: ${adminData.email} (${adminData.role})`);
+    logAction('ADMIN_CREATED', session.email, `New admin: ${adminData.email} (${adminData.role}/${adminData.designation})`);
 
     return {success: true, message: 'Admin created successfully'};
   } catch (error) {
@@ -2004,11 +2055,269 @@ function createAdmin(adminData) {
   }
 }
 
+// ==================== TERM MANAGEMENT FUNCTIONS ====================
+
+function createTerm(termData) {
+  try {
+    const session = getSession();
+    if (!session || !session.authenticated || session.role !== 'Admin') {
+      throw new Error('Unauthorized - Admin only');
+    }
+
+    const sheet = getSheet('Terms');
+    const termID = 'TERM' + termData.startYear;
+
+    // Check if term already exists
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][1] === termData.termName) {
+        return {success: false, message: 'Term already exists'};
+      }
+    }
+
+    sheet.appendRow([
+      termID,
+      termData.termName,
+      new Date(termData.startDate),
+      new Date(termData.endDate),
+      false, // Not active by default
+      new Date(),
+      session.fullName
+    ]);
+
+    logAction('TERM_CREATED', session.email, `New term created: ${termData.termName}`);
+
+    return {success: true, message: 'Term created successfully', termID: termID};
+  } catch (error) {
+    return {success: false, message: error.message};
+  }
+}
+
+function setActiveTerm(termName) {
+  try {
+    const session = getSession();
+    if (!session || !session.authenticated || session.role !== 'Admin') {
+      throw new Error('Unauthorized - Admin only');
+    }
+
+    const sheet = getSheet('Terms');
+    const data = sheet.getDataRange().getValues();
+
+    let found = false;
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][1] === termName) {
+        sheet.getRange(i + 1, 5).setValue(true); // Set active
+        found = true;
+      } else {
+        sheet.getRange(i + 1, 5).setValue(false); // Deactivate others
+      }
+    }
+
+    if (!found) {
+      return {success: false, message: 'Term not found'};
+    }
+
+    // Update Settings sheet
+    const settingsSheet = getSheet('Settings');
+    const settingsData = settingsSheet.getDataRange().getValues();
+    for (let i = 1; i < settingsData.length; i++) {
+      if (settingsData[i][0] === 'SESSION') {
+        settingsSheet.getRange(i + 1, 2).setValue(termName);
+        settingsSheet.getRange(i + 1, 4).setValue(new Date());
+        break;
+      }
+    }
+
+    logAction('TERM_ACTIVATED', session.email, `Term activated: ${termName}`);
+
+    return {success: true, message: `Term ${termName} is now active`};
+  } catch (error) {
+    return {success: false, message: error.message};
+  }
+}
+
+function getAllTerms() {
+  try {
+    const session = getSession();
+    if (!session || !session.authenticated) {
+      throw new Error('Unauthorized');
+    }
+
+    const sheet = getSheet('Terms');
+    const data = sheet.getDataRange().getValues();
+    const terms = [];
+
+    for (let i = 1; i < data.length; i++) {
+      terms.push({
+        termID: data[i][0],
+        termName: data[i][1],
+        startDate: data[i][2],
+        endDate: data[i][3],
+        active: data[i][4],
+        createdDate: data[i][5],
+        createdBy: data[i][6]
+      });
+    }
+
+    return terms;
+  } catch (error) {
+    return [];
+  }
+}
+
+// ==================== ENHANCED ADMIN MANAGEMENT ====================
+
+function getAllAdmins() {
+  try {
+    const session = getSession();
+    if (!session || !session.authenticated || session.role !== 'Admin') {
+      throw new Error('Unauthorized - Admin only');
+    }
+
+    const sheet = getSheet('Admins');
+    const data = sheet.getDataRange().getValues();
+    const admins = [];
+
+    for (let i = 1; i < data.length; i++) {
+      admins.push({
+        email: data[i][0],
+        role: data[i][2],
+        designation: data[i][3],
+        fullName: data[i][4],
+        term: data[i][5],
+        active: data[i][6],
+        createdDate: data[i][7],
+        lastLogin: data[i][8],
+        rowIndex: i + 1
+      });
+    }
+
+    return admins;
+  } catch (error) {
+    return [];
+  }
+}
+
+function updateAdmin(email, updateData) {
+  try {
+    const session = getSession();
+    if (!session || !session.authenticated || session.role !== 'Admin') {
+      throw new Error('Unauthorized - Admin only');
+    }
+
+    const sheet = getSheet('Admins');
+    const data = sheet.getDataRange().getValues();
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === email) {
+        if (updateData.role) sheet.getRange(i + 1, 3).setValue(updateData.role);
+        if (updateData.designation) sheet.getRange(i + 1, 4).setValue(updateData.designation);
+        if (updateData.fullName) sheet.getRange(i + 1, 5).setValue(updateData.fullName);
+        if (updateData.term) sheet.getRange(i + 1, 6).setValue(updateData.term);
+        if (updateData.hasOwnProperty('active')) sheet.getRange(i + 1, 7).setValue(updateData.active);
+
+        logAction('ADMIN_UPDATED', session.email, `Admin updated: ${email}`);
+        return {success: true, message: 'Admin updated successfully'};
+      }
+    }
+
+    return {success: false, message: 'Admin not found'};
+  } catch (error) {
+    return {success: false, message: error.message};
+  }
+}
+
+function deleteAdmin(email) {
+  try {
+    const session = getSession();
+    if (!session || !session.authenticated || session.role !== 'Admin') {
+      throw new Error('Unauthorized - Admin only');
+    }
+
+    if (email === session.email) {
+      return {success: false, message: 'Cannot delete your own admin account'};
+    }
+
+    const sheet = getSheet('Admins');
+    const data = sheet.getDataRange().getValues();
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === email) {
+        sheet.deleteRow(i + 1);
+        logAction('ADMIN_DELETED', session.email, `Admin deleted: ${email}`);
+        return {success: true, message: 'Admin deleted successfully'};
+      }
+    }
+
+    return {success: false, message: 'Admin not found'};
+  } catch (error) {
+    return {success: false, message: error.message};
+  }
+}
+
+function changeAdminPassword(email, newPassword) {
+  try {
+    const session = getSession();
+    if (!session || !session.authenticated) {
+      throw new Error('Unauthorized');
+    }
+
+    // Only allow changing own password or Admin role can change others
+    if (email !== session.email && session.role !== 'Admin') {
+      throw new Error('Unauthorized - Can only change own password');
+    }
+
+    const sheet = getSheet('Admins');
+    const data = sheet.getDataRange().getValues();
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === email) {
+        sheet.getRange(i + 1, 2).setValue(newPassword);
+        logAction('PASSWORD_CHANGED', session.email, `Password changed for: ${email}`);
+        return {success: true, message: 'Password changed successfully'};
+      }
+    }
+
+    return {success: false, message: 'Admin not found'};
+  } catch (error) {
+    return {success: false, message: error.message};
+  }
+}
+
+function getAdminsByTerm(termName) {
+  try {
+    const session = getSession();
+    if (!session || !session.authenticated) {
+      throw new Error('Unauthorized');
+    }
+
+    const sheet = getSheet('Admins');
+    const data = sheet.getDataRange().getValues();
+    const admins = [];
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][5] === termName) {
+        admins.push({
+          email: data[i][0],
+          role: data[i][2],
+          designation: data[i][3],
+          fullName: data[i][4],
+          active: data[i][6]
+        });
+      }
+    }
+
+    return admins;
+  } catch (error) {
+    return [];
+  }
+}
+
 // ==================== INITIALIZATION ====================
 
 function initializeDatabase() {
   const sheetNames = [
-    'Individual', 'Family', 'Payments', 'Admins', 'Settings', 'Logs',
+    'Individual', 'Family', 'Payments', 'Admins', 'Terms', 'Settings', 'Logs',
     'Events', 'Attendance', 'Announcements', 'Documents', 'Committees',
     'Renewals', 'Donations', 'Certificates', 'Skills', 'Jobs',
     'Volunteers', 'Polls', 'PollVotes', 'Meetings'
@@ -2018,6 +2327,20 @@ function initializeDatabase() {
     getSheet(sheetName);
   });
 
+  // Create default term if not exists
+  const termsSheet = getSheet('Terms');
+  if (termsSheet.getLastRow() <= 1) {
+    termsSheet.appendRow([
+      'TERM2026',
+      '2026-2027',
+      new Date('2026-04-01'),
+      new Date('2027-03-31'),
+      true, // Active
+      new Date(),
+      'System'
+    ]);
+  }
+
   // Create default admin if not exists
   const adminsSheet = getSheet('Admins');
   if (adminsSheet.getLastRow() <= 1) {
@@ -2025,7 +2348,9 @@ function initializeDatabase() {
       'admin@ksocandigarh.org',
       'admin123',
       'Admin',
-      'System Administrator',
+      'System Administrator', // Designation
+      'System Administrator', // FullName
+      '2026-2027', // Term
       true,
       new Date(),
       ''
