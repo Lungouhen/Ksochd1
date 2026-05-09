@@ -157,7 +157,7 @@ function getSheetHeaders(sheetName) {
     'Timestamp', 'EnrollmentNo', 'Status', 'Name', 'FatherName', 'MotherName',
     'Gender', 'DOB', 'MaritalStatus', 'Email', 'Phone', 'Course', 'Institution',
     'LocalGuardian', 'OfficeAddress', 'ResidentialAddress', 'PermanentAddress',
-    'PhotoURL', 'AmountPaid', 'PaymentMode', 'ReceiptNo', 'ApprovedBy', 'ApprovedDate', 'Notes'
+    'PhotoURL', 'AmountPaid', 'PaymentMode', 'ReceiptNo', 'ApprovedBy', 'ApprovedDate', 'Notes', 'Term'
   ];
 
   const familyHeaders = [
@@ -260,7 +260,8 @@ function submitIndividual(formData) {
       '', // ReceiptNo
       '', // ApprovedBy
       '', // ApprovedDate
-      ''  // Notes
+      '',  // Notes
+      getActiveTerm() // Term
     ];
 
     sheet.appendRow(rowData);
@@ -326,6 +327,7 @@ function submitFamily(formData) {
       '', // ApprovedBy
       '', // ApprovedDate
       '', // Notes
+      getActiveTerm(), // Term
       formData.relative1Name || '',
       formData.relative1Relation || '',
       formData.relative2Name || '',
@@ -2310,6 +2312,110 @@ function getAdminsByTerm(termName) {
     return admins;
   } catch (error) {
     return [];
+  }
+}
+
+// ==================== MEMBER MANAGEMENT BY TERM ====================
+
+function getMembersByTerm(memberType, termName) {
+  try {
+    const session = getSession();
+    if (!session || !session.authenticated) {
+      throw new Error('Unauthorized');
+    }
+
+    const sheet = getSheet(memberType); // 'Individual' or 'Family'
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const termIndex = headers.indexOf('Term');
+
+    if (termIndex === -1) {
+      // If Term column doesn't exist, return all members
+      return getAllMembers(memberType);
+    }
+
+    const members = [];
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][termIndex] === termName || (termName === 'All' && data[i][termIndex])) {
+        const member = {};
+        headers.forEach((header, index) => {
+          member[header] = data[i][index];
+        });
+        members.push(member);
+      }
+    }
+
+    return members;
+  } catch (error) {
+    console.error('Error getting members by term:', error);
+    return [];
+  }
+}
+
+function getAllMembers(memberType) {
+  try {
+    const session = getSession();
+    if (!session || !session.authenticated) {
+      throw new Error('Unauthorized');
+    }
+
+    const sheet = getSheet(memberType);
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const members = [];
+
+    for (let i = 1; i < data.length; i++) {
+      const member = {};
+      headers.forEach((header, index) => {
+        member[header] = data[i][index];
+      });
+      members.push(member);
+    }
+
+    return members;
+  } catch (error) {
+    console.error('Error getting all members:', error);
+    return [];
+  }
+}
+
+function getTermStatistics(termName) {
+  try {
+    const session = getSession();
+    if (!session || !session.authenticated) {
+      throw new Error('Unauthorized');
+    }
+
+    const individualMembers = getMembersByTerm('Individual', termName);
+    const familyMembers = getMembersByTerm('Family', termName);
+
+    const individualApproved = individualMembers.filter(m => m.Status === 'Approved').length;
+    const individualPending = individualMembers.filter(m => m.Status === 'Pending').length;
+    const familyApproved = familyMembers.filter(m => m.Status === 'Approved').length;
+    const familyPending = familyMembers.filter(m => m.Status === 'Pending').length;
+
+    const totalRevenue = [...individualMembers, ...familyMembers]
+      .reduce((sum, m) => sum + (parseFloat(m.AmountPaid) || 0), 0);
+
+    return {
+      success: true,
+      termName: termName,
+      statistics: {
+        totalIndividual: individualMembers.length,
+        individualApproved: individualApproved,
+        individualPending: individualPending,
+        totalFamily: familyMembers.length,
+        familyApproved: familyApproved,
+        familyPending: familyPending,
+        totalMembers: individualMembers.length + familyMembers.length,
+        totalRevenue: totalRevenue
+      }
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error.message
+    };
   }
 }
 

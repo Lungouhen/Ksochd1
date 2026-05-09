@@ -110,6 +110,12 @@
           <button onclick="switchTab('reports')" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
             <i class="fas fa-chart-bar mr-2"></i> Reports
           </button>
+          <button onclick="switchTab('admins')" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+            <i class="fas fa-user-shield mr-2"></i> Admins
+          </button>
+          <button onclick="switchTab('terms')" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+            <i class="fas fa-calendar-check mr-2"></i> Terms
+          </button>
           <button onclick="switchTab('tools')" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
             <i class="fas fa-tools mr-2"></i> Tools
           </button>
@@ -174,6 +180,9 @@
           <div class="flex space-x-3">
             <input type="text" id="searchIndividual" placeholder="Search members..."
               class="px-4 py-2 border rounded-lg" onkeyup="searchMembers('Individual')">
+            <select id="filterIndividualTerm" onchange="loadMembers('Individual')" class="px-4 py-2 border rounded-lg">
+              <option value="">All Terms</option>
+            </select>
             <select id="filterIndividualStatus" onchange="loadMembers('Individual')" class="px-4 py-2 border rounded-lg">
               <option value="">All Status</option>
               <option value="Pending">Pending</option>
@@ -195,6 +204,9 @@
           <div class="flex space-x-3">
             <input type="text" id="searchFamily" placeholder="Search members..."
               class="px-4 py-2 border rounded-lg" onkeyup="searchMembers('Family')">
+            <select id="filterFamilyTerm" onchange="loadMembers('Family')" class="px-4 py-2 border rounded-lg">
+              <option value="">All Terms</option>
+            </select>
             <select id="filterFamilyStatus" onchange="loadMembers('Family')" class="px-4 py-2 border rounded-lg">
               <option value="">All Status</option>
               <option value="Pending">Pending</option>
@@ -291,6 +303,58 @@
             <i class="fas fa-university text-green-600 mr-2"></i> Top Institutions
             </h3>
           <div id="institutionDistribution"></div>
+        </div>
+      </div>
+
+      <!-- Admins Tab -->
+      <div id="adminsTab" class="tab-content p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold">Admin Management</h2>
+          <button onclick="openAddAdminModal()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+            <i class="fas fa-user-plus mr-2"></i> Add New Admin
+          </button>
+        </div>
+
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded mb-6">
+          <p class="text-sm text-gray-700">
+            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+            Manage admin users, assign roles and designations, and control access for the current and future terms.
+          </p>
+        </div>
+
+        <div id="adminsContainer">
+          <p class="text-gray-500">Loading administrators...</p>
+        </div>
+      </div>
+
+      <!-- Terms Tab -->
+      <div id="termsTab" class="tab-content p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold">Term Management</h2>
+          <button onclick="openAddTermModal()" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
+            <i class="fas fa-plus mr-2"></i> Create New Term
+          </button>
+        </div>
+
+        <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded mb-6">
+          <p class="text-sm text-gray-700">
+            <i class="fas fa-info-circle text-green-500 mr-2"></i>
+            Manage academic/executive terms. Only ONE term can be active at a time. The active term determines enrollment numbers and current session.
+          </p>
+        </div>
+
+        <div class="mb-6">
+          <h3 class="font-bold text-lg mb-3">Active Term</h3>
+          <div id="activeTermDisplay" class="bg-white border-2 border-green-500 rounded-lg p-4">
+            <p class="text-gray-500">Loading...</p>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-bold text-lg mb-3">All Terms</h3>
+          <div id="termsContainer">
+            <p class="text-gray-500">Loading terms...</p>
+          </div>
         </div>
       </div>
 
@@ -427,6 +491,93 @@
     </div>
   </div>
 
+  <!-- Add Admin Modal -->
+  <div id="addAdminModal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+    <div class="bg-white rounded-lg max-w-md w-full mx-4">
+      <div class="p-6">
+        <h3 class="text-xl font-bold mb-4">Add New Administrator</h3>
+        <form id="addAdminForm">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium mb-2">Full Name *</label>
+              <input type="text" id="adminFullName" required class="w-full px-4 py-2 border rounded-lg">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Email *</label>
+              <input type="email" id="adminEmail" required class="w-full px-4 py-2 border rounded-lg">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Password *</label>
+              <input type="password" id="adminPassword" required class="w-full px-4 py-2 border rounded-lg">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Role *</label>
+              <select id="adminRole" required class="w-full px-4 py-2 border rounded-lg">
+                <option value="">Select Role</option>
+                <option value="Admin">Admin</option>
+                <option value="President">President</option>
+                <option value="Vice President">Vice President</option>
+                <option value="General Secretary">General Secretary</option>
+                <option value="Joint Secretary">Joint Secretary</option>
+                <option value="Treasurer">Treasurer</option>
+                <option value="Finance Secretary">Finance Secretary</option>
+                <option value="Cultural Secretary">Cultural Secretary</option>
+                <option value="Sports Secretary">Sports Secretary</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Designation (Optional - defaults to role)</label>
+              <input type="text" id="adminDesignation" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g., Chief Administrator">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Term</label>
+              <select id="adminTerm" class="w-full px-4 py-2 border rounded-lg">
+                <option value="">Current Active Term</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex justify-end space-x-3 mt-6">
+            <button type="button" onclick="closeModal('addAdminModal')" class="px-6 py-2 border rounded-lg">Cancel</button>
+            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Create Admin</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Term Modal -->
+  <div id="addTermModal" class="modal fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+    <div class="bg-white rounded-lg max-w-md w-full mx-4">
+      <div class="p-6">
+        <h3 class="text-xl font-bold mb-4">Create New Term</h3>
+        <form id="addTermForm">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium mb-2">Term Name * (e.g., 2027-2028)</label>
+              <input type="text" id="termName" required class="w-full px-4 py-2 border rounded-lg" placeholder="YYYY-YYYY">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Start Year *</label>
+              <input type="number" id="termStartYear" required class="w-full px-4 py-2 border rounded-lg" placeholder="2027" min="2020" max="2050">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Start Date *</label>
+              <input type="date" id="termStartDate" required class="w-full px-4 py-2 border rounded-lg">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">End Date *</label>
+              <input type="date" id="termEndDate" required class="w-full px-4 py-2 border rounded-lg">
+            </div>
+          </div>
+          <div class="flex justify-end space-x-3 mt-6">
+            <button type="button" onclick="closeModal('addTermModal')" class="px-6 py-2 border rounded-lg">Cancel</button>
+            <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Create Term</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <script>
     let currentUser = null;
     let allMembers = {Individual: [], Family: []};
@@ -455,6 +606,13 @@
       loadStats();
       loadMembers('Individual');
       loadMembers('Family');
+
+      // Load terms to populate term filters
+      google.script.run
+        .withSuccessHandler(function(terms) {
+          populateTermFilters(terms);
+        })
+        .getAllTerms();
     }
 
     function loadStats() {
@@ -496,10 +654,19 @@
 
     function loadMembers(type) {
       const status = document.getElementById(`filter${type}Status`)?.value || '';
+      const term = document.getElementById(`filter${type}Term`)?.value || '';
+
       google.script.run
         .withSuccessHandler(function(members) {
           allMembers[type] = members;
-          displayMembers(type, members);
+
+          // Apply term filter client-side if term is selected
+          let filteredMembers = members;
+          if (term) {
+            filteredMembers = members.filter(m => m.Term === term);
+          }
+
+          displayMembers(type, filteredMembers);
         })
         .getMembers(type, status);
     }
@@ -520,6 +687,7 @@
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Name</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Email</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Phone</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Term</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Status</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Payment</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Actions</th>
@@ -532,6 +700,7 @@
                 <td class="px-4 py-3 text-sm font-medium">${member.Name}</td>
                 <td class="px-4 py-3 text-sm">${member.Email}</td>
                 <td class="px-4 py-3 text-sm">${member.Phone}</td>
+                <td class="px-4 py-3 text-sm">${member.Term || 'N/A'}</td>
                 <td class="px-4 py-3">
                   <span class="px-2 py-1 text-xs rounded-full ${
                     member.Status === 'Approved' ? 'bg-green-100 text-green-800' :
@@ -705,6 +874,10 @@
       // Load specific tab data if needed
       if (tabName === 'reports') {
         loadReports();
+      } else if (tabName === 'admins') {
+        loadAdmins();
+      } else if (tabName === 'terms') {
+        loadTerms();
       }
     }
 
@@ -789,6 +962,294 @@
       );
       displayMembers(type, filtered);
     }
+
+    // ============ ADMIN MANAGEMENT FUNCTIONS ============
+
+    function loadAdmins() {
+      google.script.run
+        .withSuccessHandler(function(admins) {
+          displayAdmins(admins);
+        })
+        .getAllAdmins();
+    }
+
+    function displayAdmins(admins) {
+      const container = document.getElementById('adminsContainer');
+
+      if (admins.length === 0) {
+        container.innerHTML = '<p class="text-gray-500">No administrators found</p>';
+        return;
+      }
+
+      const html = `
+        <table class="min-w-full bg-white border">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Name</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Email</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Role</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Designation</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Term</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Status</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            ${admins.map(admin => `
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 text-sm font-medium">${admin.fullName}</td>
+                <td class="px-4 py-3 text-sm">${admin.email}</td>
+                <td class="px-4 py-3 text-sm"><span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">${admin.role}</span></td>
+                <td class="px-4 py-3 text-sm">${admin.designation || '-'}</td>
+                <td class="px-4 py-3 text-sm">${admin.term || '-'}</td>
+                <td class="px-4 py-3">
+                  <span class="px-2 py-1 text-xs rounded-full ${
+                    admin.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  }">${admin.active ? 'Active' : 'Inactive'}</span>
+                </td>
+                <td class="px-4 py-3 text-sm space-x-2">
+                  <button onclick="toggleAdminStatus('${admin.email}', ${!admin.active})" class="text-blue-600 hover:text-blue-800">
+                    <i class="fas fa-${admin.active ? 'toggle-on' : 'toggle-off'}"></i>
+                  </button>
+                  <button onclick="deleteAdmin('${admin.email}')" class="text-red-600 hover:text-red-800">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    function openAddAdminModal() {
+      // Load terms into dropdown
+      google.script.run
+        .withSuccessHandler(function(terms) {
+          const select = document.getElementById('adminTerm');
+          select.innerHTML = '<option value="">Current Active Term</option>';
+          terms.forEach(term => {
+            select.innerHTML += `<option value="${term.termName}">${term.termName}</option>`;
+          });
+        })
+        .getAllTerms();
+
+      openModal('addAdminModal');
+    }
+
+    document.getElementById('addAdminForm')?.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const adminData = {
+        email: document.getElementById('adminEmail').value,
+        password: document.getElementById('adminPassword').value,
+        role: document.getElementById('adminRole').value,
+        designation: document.getElementById('adminDesignation').value,
+        fullName: document.getElementById('adminFullName').value,
+        term: document.getElementById('adminTerm').value
+      };
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            showAlert('Admin created successfully!', 'success');
+            document.getElementById('addAdminForm').reset();
+            closeModal('addAdminModal');
+            loadAdmins();
+          } else {
+            showAlert(response.message, 'error');
+          }
+        })
+        .createAdmin(adminData);
+    });
+
+    function toggleAdminStatus(email, newStatus) {
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            showAlert(`Admin ${newStatus ? 'activated' : 'deactivated'}`, 'success');
+            loadAdmins();
+          } else {
+            showAlert(response.message, 'error');
+          }
+        })
+        .updateAdmin(email, {active: newStatus});
+    }
+
+    function deleteAdmin(email) {
+      if (!confirm(`Delete admin: ${email}?`)) return;
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            showAlert('Admin deleted successfully', 'success');
+            loadAdmins();
+          } else {
+            showAlert(response.message, 'error');
+          }
+        })
+        .deleteAdmin(email);
+    }
+
+    // ============ TERM MANAGEMENT FUNCTIONS ============
+
+    function loadTerms() {
+      google.script.run
+        .withSuccessHandler(function(terms) {
+          displayTerms(terms);
+          populateTermFilters(terms);
+        })
+        .getAllTerms();
+    }
+
+    function populateTermFilters(terms) {
+      // Populate Individual term filter
+      const individualTermFilter = document.getElementById('filterIndividualTerm');
+      if (individualTermFilter) {
+        individualTermFilter.innerHTML = '<option value="">All Terms</option>';
+        terms.forEach(term => {
+          const option = document.createElement('option');
+          option.value = term.termName;
+          option.textContent = term.termName;
+          if (term.active) {
+            option.textContent += ' (Active)';
+          }
+          individualTermFilter.appendChild(option);
+        });
+      }
+
+      // Populate Family term filter
+      const familyTermFilter = document.getElementById('filterFamilyTerm');
+      if (familyTermFilter) {
+        familyTermFilter.innerHTML = '<option value="">All Terms</option>';
+        terms.forEach(term => {
+          const option = document.createElement('option');
+          option.value = term.termName;
+          option.textContent = term.termName;
+          if (term.active) {
+            option.textContent += ' (Active)';
+          }
+          familyTermFilter.appendChild(option);
+        });
+      }
+    }
+
+    function displayTerms(terms) {
+      const activeTerm = terms.find(t => t.active);
+
+      // Display active term
+      if (activeTerm) {
+        document.getElementById('activeTermDisplay').innerHTML = `
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="text-xl font-bold text-green-700">${activeTerm.termName}</h4>
+              <p class="text-sm text-gray-600">
+                ${new Date(activeTerm.startDate).toLocaleDateString()} - ${new Date(activeTerm.endDate).toLocaleDateString()}
+              </p>
+            </div>
+            <div class="text-green-600 text-4xl">
+              <i class="fas fa-check-circle"></i>
+            </div>
+          </div>
+        `;
+      }
+
+      // Display all terms
+      const container = document.getElementById('termsContainer');
+
+      if (terms.length === 0) {
+        container.innerHTML = '<p class="text-gray-500">No terms found</p>';
+        return;
+      }
+
+      const html = `
+        <table class="min-w-full bg-white border">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Term Name</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Start Date</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">End Date</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Status</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Created By</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            ${terms.map(term => `
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 text-sm font-medium">${term.termName}</td>
+                <td class="px-4 py-3 text-sm">${new Date(term.startDate).toLocaleDateString()}</td>
+                <td class="px-4 py-3 text-sm">${new Date(term.endDate).toLocaleDateString()}</td>
+                <td class="px-4 py-3">
+                  <span class="px-2 py-1 text-xs rounded-full ${
+                    term.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                  }">${term.active ? 'Active' : 'Inactive'}</span>
+                </td>
+                <td class="px-4 py-3 text-sm">${term.createdBy}</td>
+                <td class="px-4 py-3 text-sm">
+                  ${!term.active ? `
+                    <button onclick="activateTerm('${term.termName}')" class="text-green-600 hover:text-green-800">
+                      <i class="fas fa-check-circle mr-1"></i> Activate
+                    </button>
+                  ` : '<span class="text-gray-400">Current Active</span>'}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    function openAddTermModal() {
+      openModal('addTermModal');
+    }
+
+    document.getElementById('addTermForm')?.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const termData = {
+        termName: document.getElementById('termName').value,
+        startYear: parseInt(document.getElementById('termStartYear').value),
+        startDate: document.getElementById('termStartDate').value,
+        endDate: document.getElementById('termEndDate').value
+      };
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            showAlert('Term created successfully!', 'success');
+            document.getElementById('addTermForm').reset();
+            closeModal('addTermModal');
+            loadTerms();
+          } else {
+            showAlert(response.message, 'error');
+          }
+        })
+        .createTerm(termData);
+    });
+
+    function activateTerm(termName) {
+      if (!confirm(`Activate term: ${termName}? This will deactivate the current term and use this term for new enrollments.`)) return;
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            showAlert('Term activated! Please refresh to see changes.', 'success');
+            setTimeout(() => {
+              window.location.reload();
+            }, 2000);
+          } else {
+            showAlert(response.message, 'error');
+          }
+        })
+        .setActiveTerm(termName);
+    }
+
+    // ============ END NEW FUNCTIONS ============
 
     function exportData() {
       if (!confirm('Export all member data to Excel?')) return;
