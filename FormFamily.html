@@ -20,8 +20,8 @@
           </div>
         </div>
         <div class="flex space-x-4">
-          <a href="?page=home" class="hover:text-green-200 transition"><i class="fas fa-home mr-1"></i> Home</a>
-          <a href="?page=individual" class="hover:text-green-200 transition"><i class="fas fa-user mr-1"></i> Individual Form</a>
+          <a href="#" onclick="navigateTo('home')" class="hover:text-green-200 transition cursor-pointer"><i class="fas fa-home mr-1"></i> Home</a>
+          <a href="#" onclick="navigateTo('form-individual')" class="hover:text-green-200 transition cursor-pointer"><i class="fas fa-user mr-1"></i> Individual Form</a>
         </div>
       </div>
     </div>
@@ -355,7 +355,7 @@
 
       <!-- Submit Button -->
       <div class="flex justify-between items-center">
-        <a href="?page=home" class="text-gray-600 hover:text-gray-800">
+        <a href="#" onclick="navigateTo('home')" class="text-gray-600 hover:text-gray-800 cursor-pointer">
           <i class="fas fa-arrow-left mr-2"></i> Back to Home
         </a>
         <button type="submit" id="submitBtn"
@@ -375,6 +375,14 @@
   </footer>
 
   <script>
+    // Get the script URL for navigation
+    const SCRIPT_URL = window.location.href.split('?')[0];
+
+    // Navigation helper function
+    function navigateTo(page) {
+      window.location.href = `${SCRIPT_URL}?page=${page}`;
+    }
+
     let photoBase64 = '';
 
     function handlePhotoUpload(event) {

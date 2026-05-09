@@ -73,7 +73,7 @@
 
         <!-- Additional Links -->
         <div class="mt-6 text-center">
-          <a href="?page=home" class="text-sm text-blue-900 hover:text-blue-700">
+          <a href="#" onclick="navigateTo('home')" class="text-sm text-blue-900 hover:text-blue-700 cursor-pointer">
             <i class="fas fa-arrow-left mr-1"></i> Back to Home
           </a>
         </div>
@@ -104,6 +104,14 @@
   </div>
 
   <script>
+    // Get the script URL for navigation
+    const SCRIPT_URL = window.location.href.split('?')[0];
+
+    // Navigation helper function
+    function navigateTo(page) {
+      window.location.href = `${SCRIPT_URL}?page=${page}`;
+    }
+
     function togglePassword() {
       const passwordInput = document.getElementById('password');
       const toggleIcon = document.getElementById('toggleIcon');

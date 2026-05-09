@@ -77,7 +77,7 @@ function doGet(e) {
   const session = getSession();
 
   // Public routes
-  if (['home', 'individual', 'family'].includes(page)) {
+  if (['home', 'form-individual', 'form-family', 'individual', 'family'].includes(page)) {
     return HtmlService.createTemplateFromFile(getPageFile(page))
       .evaluate()
       .setTitle(`${CONFIG.ORGANIZATION} - ${CONFIG.SESSION}`)
@@ -95,14 +95,17 @@ function doGet(e) {
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
 
-  if (page === 'dashboard' || page.startsWith('admin')) {
+  // All admin pages - require authentication
+  const adminPages = ['dashboard', 'individual-list', 'family-list', 'all-members', 'payments', 'settings', 'receipt-view'];
+  if (adminPages.includes(page) || page.startsWith('admin')) {
     if (!session || !session.authenticated) {
       return doGet({parameter: {page: 'login'}});
     }
     const template = HtmlService.createTemplateFromFile('Dashboard');
     template.userSession = session;
+    template.activePage = page;
     return template.evaluate()
-      .setTitle('Admin Dashboard')
+      .setTitle(`Admin Dashboard - ${page}`)
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
 
@@ -114,7 +117,9 @@ function getPageFile(page) {
   const pages = {
     'home': 'Home',
     'individual': 'FormIndividual',
+    'form-individual': 'FormIndividual',
     'family': 'FormFamily',
+    'form-family': 'FormFamily',
     'login': 'Login',
     'dashboard': 'Dashboard'
   };
