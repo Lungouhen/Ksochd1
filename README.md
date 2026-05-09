@@ -136,28 +136,29 @@ KSO-Portal/
 
 The portal automatically creates 20+ sheets:
 
-| Sheet | Purpose |
-|-------|---------|
-| **Individual** | Individual member records |
-| **Family** | Family membership records |
-| **Payments** | Payment transactions |
-| **Admins** | Admin user accounts |
-| **Settings** | System configuration |
-| **Logs** | Audit trail |
-| **Events** | Event information |
-| **Attendance** | Event attendance records |
-| **Announcements** | Organization announcements |
-| **Documents** | Document repository |
-| **Committees** | Committee assignments |
-| **Renewals** | Membership renewals |
-| **Donations** | Donation records |
-| **Certificates** | Issued certificates |
-| **Skills** | Member skills database |
-| **Jobs** | Job board postings |
-| **Volunteers** | Volunteer hour logs |
-| **Polls** | Poll questions |
-| **PollVotes** | Poll responses |
-| **Meetings** | Meeting minutes |
+| Sheet | Purpose | Key Fields |
+|-------|---------|------------|
+| **Individual** | Individual member records | EnrollmentNo, Name, Email, Phone, Status, **Term** 🆕 |
+| **Family** | Family membership records | EnrollmentNo, Name, Relatives, Status, **Term** 🆕 |
+| **Payments** | Payment transactions | ReceiptNo, Amount, PaymentMode |
+| **Admins** | Admin user accounts | Email, Role, **Designation** 🆕, **Term** 🆕 |
+| **Terms** 🆕 | Organizational terms | TermName, StartDate, EndDate, Active |
+| **Settings** | System configuration | Key, Value, Description |
+| **Logs** | Audit trail | Timestamp, Action, User |
+| **Events** | Event information | EventName, Date, Location |
+| **Attendance** | Event attendance records | EventID, EnrollmentNo, Status |
+| **Announcements** | Organization announcements | Title, Content, PostedDate |
+| **Documents** | Document repository | Title, FileURL, Category |
+| **Committees** | Committee assignments | CommitteeName, MemberName, Position |
+| **Renewals** | Membership renewals | EnrollmentNo, RenewalDate, Status |
+| **Donations** | Donation records | DonorName, Amount, Purpose |
+| **Certificates** | Issued certificates | CertificateType, IssueDate, FileURL |
+| **Skills** | Member skills database | SkillName, ProficiencyLevel |
+| **Jobs** | Job board postings | JobTitle, Company, PostedDate |
+| **Volunteers** | Volunteer hour logs | Activity, Hours, Date |
+| **Polls** | Poll questions | Question, Options, ExpiryDate |
+| **PollVotes** | Poll responses | PollID, EnrollmentNo, SelectedOption |
+| **Meetings** | Meeting minutes | Title, Date, Agenda, Minutes |
 
 ---
 
