@@ -1,53 +1,187 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <base target="_top">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <title>Admin Login</title>
-  </head>
-  <body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-white border border-slate-200 rounded-xl p-6 shadow">
-      <a href="?page=home" class="text-blue-600">← Back</a>
-      <h1 class="text-2xl font-bold mt-2">Admin Dashboard Login</h1>
-      <p class="text-slate-600 text-sm mt-1">Authorized roles: Admin, President, General Secretary, Treasurer</p>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login - KSO Chandigarh</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-br from-blue-900 via-blue-800 to-purple-900 min-h-screen flex items-center justify-center">
+  <div class="container mx-auto px-4">
+    <div class="max-w-md mx-auto">
+      <!-- Logo/Header -->
+      <div class="text-center mb-8">
+        <div class="bg-white w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <i class="fas fa-shield-alt text-blue-900 text-4xl"></i>
+        </div>
+        <h1 class="text-4xl font-bold text-white mb-2">Admin Portal</h1>
+        <p class="text-blue-200">KSO Chandigarh - Session 2026-2027</p>
+      </div>
 
-      <form id="loginForm" class="mt-6 space-y-4">
-        <input class="w-full border rounded p-2" name="email" type="email" placeholder="Email" required>
-        <input class="w-full border rounded p-2" name="password" type="password" placeholder="Password" required>
-        <button class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700" type="submit">Login</button>
-        <div id="message" class="text-sm"></div>
-      </form>
+      <!-- Login Card -->
+      <div class="bg-white rounded-lg shadow-2xl p-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+          <i class="fas fa-lock mr-2 text-blue-900"></i>
+          Sign In
+        </h2>
+
+        <!-- Alert Messages -->
+        <div id="alertContainer" class="hidden mb-6"></div>
+
+        <!-- Login Form -->
+        <form id="loginForm">
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              <i class="fas fa-envelope mr-2 text-gray-500"></i>
+              Email Address
+            </label>
+            <input type="email" id="email" name="email" required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="admin@ksocandigarh.org">
+          </div>
+
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              <i class="fas fa-key mr-2 text-gray-500"></i>
+              Password
+            </label>
+            <div class="relative">
+              <input type="password" id="password" name="password" required
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
+                placeholder="Enter your password">
+              <button type="button" onclick="togglePassword()"
+                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                <i class="fas fa-eye" id="toggleIcon"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="mb-6">
+            <label class="flex items-center">
+              <input type="checkbox" class="mr-2">
+              <span class="text-sm text-gray-600">Remember me</span>
+            </label>
+          </div>
+
+          <button type="submit" id="loginBtn"
+            class="w-full bg-blue-900 text-white py-3 rounded-lg font-semibold hover:bg-blue-800 transition flex items-center justify-center">
+            <i class="fas fa-sign-in-alt mr-2"></i>
+            Sign In
+          </button>
+        </form>
+
+        <!-- Additional Links -->
+        <div class="mt-6 text-center">
+          <a href="?page=home" class="text-sm text-blue-900 hover:text-blue-700">
+            <i class="fas fa-arrow-left mr-1"></i> Back to Home
+          </a>
+        </div>
+
+        <!-- Info Box -->
+        <div class="mt-6 bg-blue-50 border-l-4 border-blue-900 p-4 rounded">
+          <p class="text-xs text-gray-600">
+            <i class="fas fa-info-circle text-blue-900 mr-2"></i>
+            <strong>For Admins Only:</strong> This portal is restricted to authorized administrators. Default credentials: admin@ksocandigarh.org / admin123
+          </p>
+        </div>
+      </div>
+
+      <!-- Roles Info -->
+      <div class="mt-6 bg-white bg-opacity-10 backdrop-blur-lg rounded-lg p-6 text-white">
+        <h3 class="font-bold mb-3 flex items-center">
+          <i class="fas fa-user-shield mr-2"></i>
+          Admin Roles
+        </h3>
+        <ul class="space-y-2 text-sm">
+          <li><i class="fas fa-crown text-yellow-400 mr-2"></i> <strong>Admin:</strong> Full system access</li>
+          <li><i class="fas fa-user-tie text-blue-300 mr-2"></i> <strong>President:</strong> Member management & approvals</li>
+          <li><i class="fas fa-clipboard-list text-green-300 mr-2"></i> <strong>General Secretary:</strong> Events & communications</li>
+          <li><i class="fas fa-coins text-yellow-300 mr-2"></i> <strong>Treasurer:</strong> Financial management</li>
+        </ul>
+      </div>
     </div>
+  </div>
 
-    <script>
-      const form = document.getElementById('loginForm');
-      const msg = document.getElementById('message');
+  <script>
+    function togglePassword() {
+      const passwordInput = document.getElementById('password');
+      const toggleIcon = document.getElementById('toggleIcon');
 
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        msg.textContent = 'Signing in...';
-        msg.className = 'text-sm text-blue-600';
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.classList.remove('fa-eye');
+        toggleIcon.classList.add('fa-eye-slash');
+      } else {
+        passwordInput.type = 'password';
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+      }
+    }
 
-        const data = Object.fromEntries(new FormData(form).entries());
+    function showAlert(message, type = 'error') {
+      const alertContainer = document.getElementById('alertContainer');
+      const bgColor = type === 'success' ? 'bg-green-50 border-green-500 text-green-800' : 'bg-red-50 border-red-500 text-red-800';
+      const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
+
+      alertContainer.innerHTML = `
+        <div class="${bgColor} border-l-4 p-4 rounded">
+          <div class="flex items-center">
+            <i class="fas ${icon} text-xl mr-3"></i>
+            <p class="font-medium">${message}</p>
+          </div>
+        </div>
+      `;
+      alertContainer.classList.remove('hidden');
+
+      // Auto hide after 5 seconds
+      setTimeout(() => {
+        alertContainer.classList.add('hidden');
+      }, 5000);
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const loginBtn = document.getElementById('loginBtn');
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Signing In...';
+
+      try {
         google.script.run
-          .withSuccessHandler((res) => {
-            if (res.success) {
-              localStorage.setItem('ksoToken', res.token);
-              localStorage.setItem('ksoUser', JSON.stringify(res.user));
-              window.location.href = '?page=dashboard';
+          .withSuccessHandler(function(response) {
+            if (response.success) {
+              showAlert('Login successful! Redirecting...', 'success');
+              setTimeout(() => {
+                window.location.href = '?page=dashboard';
+              }, 1000);
             } else {
-              msg.textContent = res.message || 'Login failed';
-              msg.className = 'text-sm text-red-700';
+              showAlert(response.message || 'Invalid email or password', 'error');
+              loginBtn.disabled = false;
+              loginBtn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i> Sign In';
             }
           })
-          .withFailureHandler((err) => {
-            msg.textContent = err.message || 'Login failed';
-            msg.className = 'text-sm text-red-700';
+          .withFailureHandler(function(error) {
+            showAlert('Login failed: ' + error.message, 'error');
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i> Sign In';
           })
-          .adminLogin(data.email, data.password);
-      });
-    </script>
-  </body>
+          .adminLogin(email, password);
+      } catch (error) {
+        showAlert('Error: ' + error.message, 'error');
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i> Sign In';
+      }
+    });
+
+    // Prevent back button after logout
+    window.history.pushState(null, '', window.location.href);
+    window.onpopstate = function() {
+      window.history.pushState(null, '', window.location.href);
+    };
+  </script>
+</body>
 </html>

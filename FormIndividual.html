@@ -1,89 +1,374 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <base target="_top">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <title>Individual Membership</title>
-  </head>
-  <body class="bg-slate-50">
-    <div class="max-w-4xl mx-auto p-4 md:p-8">
-      <a href="?page=home" class="text-blue-600">← Back to Home</a>
-      <h1 class="text-2xl font-bold mt-2">Individual Membership Form</h1>
-      <form id="individualForm" class="mt-6 bg-white rounded-xl border border-slate-200 p-6 grid md:grid-cols-2 gap-4">
-        <input class="border rounded p-2" name="name" placeholder="Name" required>
-        <input class="border rounded p-2" name="fatherName" placeholder="Father Name" required>
-        <input class="border rounded p-2" name="motherName" placeholder="Mother Name" required>
-        <select class="border rounded p-2" name="gender" required>
-          <option value="">Gender</option>
-          <option>Male</option><option>Female</option><option>Other</option>
-        </select>
-        <input class="border rounded p-2" name="dob" type="date" required>
-        <select class="border rounded p-2" name="maritalStatus" required>
-          <option value="">Marital Status</option>
-          <option>Single</option><option>Married</option><option>Other</option>
-        </select>
-        <input class="border rounded p-2" name="email" type="email" placeholder="Email" required>
-        <input class="border rounded p-2" name="phone" placeholder="Phone" required>
-        <input class="border rounded p-2" name="course" placeholder="Course">
-        <input class="border rounded p-2" name="institution" placeholder="Institution">
-        <input class="border rounded p-2 md:col-span-2" name="localGuardian" placeholder="Local Guardian">
-        <textarea class="border rounded p-2" name="officeAddress" placeholder="Office Address"></textarea>
-        <textarea class="border rounded p-2" name="residentialAddress" placeholder="Residential Address"></textarea>
-        <textarea class="border rounded p-2 md:col-span-2" name="permanentAddress" placeholder="Permanent Address"></textarea>
-        <textarea class="border rounded p-2 md:col-span-2" name="notes" placeholder="Notes"></textarea>
-        <div class="md:col-span-2">
-          <label class="font-medium">Photo Upload</label>
-          <input class="block mt-1" id="photo" type="file" accept="image/*">
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Individual Membership Form - KSO Chandigarh</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+  <!-- Navigation -->
+  <nav class="bg-blue-900 text-white shadow-lg">
+    <div class="container mx-auto px-4 py-4">
+      <div class="flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+          <i class="fas fa-users text-3xl"></i>
+          <div>
+            <h1 class="text-xl font-bold">KSO Chandigarh</h1>
+            <p class="text-xs text-blue-200">Individual Membership Application</p>
+          </div>
         </div>
-        <button class="md:col-span-2 bg-blue-600 text-white py-2 rounded hover:bg-blue-700" type="submit">Submit Application</button>
-        <div id="message" class="md:col-span-2 text-sm"></div>
-      </form>
+        <div class="flex space-x-4">
+          <a href="?page=home" class="hover:text-blue-200 transition"><i class="fas fa-home mr-1"></i> Home</a>
+          <a href="?page=family" class="hover:text-blue-200 transition"><i class="fas fa-users mr-1"></i> Family Form</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Form Section -->
+  <div class="container mx-auto px-4 py-8 max-w-4xl">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">Individual Membership Application</h1>
+      <p class="text-gray-600">Session 2026-2027 | Membership Fee: ₹500</p>
+      <div class="mt-4 bg-blue-50 border-l-4 border-blue-900 p-4">
+        <p class="text-sm text-gray-700">
+          <i class="fas fa-info-circle text-blue-900 mr-2"></i>
+          Please fill all required fields marked with <span class="text-red-500">*</span>. You will receive a confirmation email with your enrollment number after submission.
+        </p>
+      </div>
     </div>
 
-    <script>
-      const form = document.getElementById('individualForm');
-      const msg = document.getElementById('message');
+    <!-- Alert Messages -->
+    <div id="alertContainer" class="hidden mb-6"></div>
 
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        msg.textContent = 'Submitting...';
-        msg.className = 'md:col-span-2 text-sm text-blue-600';
+    <!-- Form -->
+    <form id="membershipForm" class="bg-white rounded-lg shadow-md p-8">
+      <!-- Personal Information -->
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+          <i class="fas fa-user-circle text-blue-900 mr-3"></i>
+          Personal Information
+        </h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Full Name <span class="text-red-500">*</span>
+            </label>
+            <input type="text" id="name" name="name" required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter your full name">
+          </div>
 
-        const data = Object.fromEntries(new FormData(form).entries());
-        const photoFile = document.getElementById('photo').files[0];
-        if (photoFile) {
-          data.photoBase64 = await toDataURL(photoFile);
-          data.photoName = photoFile.name;
-        }
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Gender <span class="text-red-500">*</span>
+            </label>
+            <select id="gender" name="gender" required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
 
-        google.script.run
-          .withSuccessHandler((res) => {
-            if (res.success) {
-              msg.textContent = `${res.message} Enrollment No: ${res.enrollmentNo}`;
-              msg.className = 'md:col-span-2 text-sm text-green-700';
-              form.reset();
-            } else {
-              msg.textContent = res.message || 'Submission failed';
-              msg.className = 'md:col-span-2 text-sm text-red-700';
-            }
-          })
-          .withFailureHandler((err) => {
-            msg.textContent = err.message || 'Submission failed.';
-            msg.className = 'md:col-span-2 text-sm text-red-700';
-          })
-          .submitIndividual(data);
-      });
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Date of Birth <span class="text-red-500">*</span>
+            </label>
+            <input type="date" id="dob" name="dob" required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          </div>
 
-      function toDataURL(file) {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Marital Status <span class="text-red-500">*</span>
+            </label>
+            <select id="maritalStatus" name="maritalStatus" required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="">Select Status</option>
+              <option value="Single">Single</option>
+              <option value="Married">Married</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Father's Name <span class="text-red-500">*</span>
+            </label>
+            <input type="text" id="fatherName" name="fatherName" required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter father's name">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Mother's Name <span class="text-red-500">*</span>
+            </label>
+            <input type="text" id="motherName" name="motherName" required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter mother's name">
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Information -->
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+          <i class="fas fa-address-book text-green-600 mr-3"></i>
+          Contact Information
+        </h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Email Address <span class="text-red-500">*</span>
+            </label>
+            <input type="email" id="email" name="email" required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="your.email@example.com">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Phone Number <span class="text-red-500">*</span>
+            </label>
+            <input type="tel" id="phone" name="phone" required pattern="[0-9]{10}"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="10-digit mobile number">
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Local Guardian (in Chandigarh)
+            </label>
+            <input type="text" id="localGuardian" name="localGuardian"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Name and contact of local guardian">
+          </div>
+        </div>
+      </div>
+
+      <!-- Educational Information -->
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+          <i class="fas fa-graduation-cap text-purple-600 mr-3"></i>
+          Educational Information
+        </h2>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Institution/College <span class="text-red-500">*</span>
+            </label>
+            <input type="text" id="institution" name="institution" required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter institution name">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Course/Program <span class="text-red-500">*</span>
+            </label>
+            <input type="text" id="course" name="course" required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="e.g., B.Tech CSE, MBA, etc.">
+          </div>
+        </div>
+      </div>
+
+      <!-- Address Information -->
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+          <i class="fas fa-map-marker-alt text-red-600 mr-3"></i>
+          Address Information
+        </h2>
+        <div class="space-y-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Office Address (if applicable)
+            </label>
+            <textarea id="officeAddress" name="officeAddress" rows="2"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter office address"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Residential Address (Chandigarh) <span class="text-red-500">*</span>
+            </label>
+            <textarea id="residentialAddress" name="residentialAddress" rows="2" required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter your current residential address in Chandigarh"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Permanent Address (Home) <span class="text-red-500">*</span>
+            </label>
+            <textarea id="permanentAddress" name="permanentAddress" rows="2" required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter your permanent home address"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Photo Upload -->
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+          <i class="fas fa-camera text-orange-600 mr-3"></i>
+          Photograph
+        </h2>
+        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+          <input type="file" id="photoFile" name="photoFile" accept="image/*"
+            class="hidden" onchange="handlePhotoUpload(event)">
+          <label for="photoFile" class="cursor-pointer">
+            <div id="photoPreview" class="mb-4">
+              <i class="fas fa-cloud-upload-alt text-6xl text-gray-400"></i>
+            </div>
+            <p class="text-gray-600 mb-2">Click to upload your photograph</p>
+            <p class="text-sm text-gray-500">PNG, JPG up to 2MB (Passport size photo)</p>
+          </label>
+        </div>
+      </div>
+
+      <!-- Terms and Submit -->
+      <div class="mb-6">
+        <label class="flex items-start">
+          <input type="checkbox" id="terms" required class="mt-1 mr-3">
+          <span class="text-sm text-gray-700">
+            I hereby declare that the information provided above is true and correct to the best of my knowledge. I agree to abide by the rules and regulations of KSO Chandigarh.
+          </span>
+        </label>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="flex justify-between items-center">
+        <a href="?page=home" class="text-gray-600 hover:text-gray-800">
+          <i class="fas fa-arrow-left mr-2"></i> Back to Home
+        </a>
+        <button type="submit" id="submitBtn"
+          class="bg-blue-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 transition flex items-center">
+          <i class="fas fa-paper-plane mr-2"></i> Submit Application
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 text-white py-8 mt-12">
+    <div class="container mx-auto px-4 text-center">
+      <p class="mb-2">&copy; 2026-2027 Kuki Students' Organisation (KSO) Chandigarh</p>
+      <p class="text-sm text-gray-400">All rights reserved</p>
+    </div>
+  </footer>
+
+  <script>
+    let photoBase64 = '';
+
+    function handlePhotoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Validate file size (2MB max)
+      if (file.size > 2 * 1024 * 1024) {
+        showAlert('Photo size must be less than 2MB', 'error');
+        event.target.value = '';
+        return;
       }
-    </script>
-  </body>
+
+      // Preview and convert to base64
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        photoBase64 = e.target.result;
+        document.getElementById('photoPreview').innerHTML = `
+          <img src="${e.target.result}" class="max-w-xs mx-auto rounded-lg shadow-md">
+        `;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function showAlert(message, type = 'success') {
+      const alertContainer = document.getElementById('alertContainer');
+      const bgColor = type === 'success' ? 'bg-green-50 border-green-500 text-green-800' : 'bg-red-50 border-red-500 text-red-800';
+      const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+
+      alertContainer.innerHTML = `
+        <div class="${bgColor} border-l-4 p-4 rounded">
+          <div class="flex items-center">
+            <i class="fas ${icon} text-xl mr-3"></i>
+            <p>${message}</p>
+          </div>
+        </div>
+      `;
+      alertContainer.classList.remove('hidden');
+
+      // Auto hide success messages
+      if (type === 'success') {
+        setTimeout(() => {
+          alertContainer.classList.add('hidden');
+        }, 5000);
+      }
+
+      // Scroll to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    document.getElementById('membershipForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Submitting...';
+
+      // Gather form data
+      const formData = {
+        name: document.getElementById('name').value,
+        fatherName: document.getElementById('fatherName').value,
+        motherName: document.getElementById('motherName').value,
+        gender: document.getElementById('gender').value,
+        dob: document.getElementById('dob').value,
+        maritalStatus: document.getElementById('maritalStatus').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        course: document.getElementById('course').value,
+        institution: document.getElementById('institution').value,
+        localGuardian: document.getElementById('localGuardian').value,
+        officeAddress: document.getElementById('officeAddress').value,
+        residentialAddress: document.getElementById('residentialAddress').value,
+        permanentAddress: document.getElementById('permanentAddress').value,
+        photoFile: photoBase64
+      };
+
+      try {
+        // Call Google Apps Script function
+        google.script.run
+          .withSuccessHandler(function(response) {
+            if (response.success) {
+              showAlert(`Success! Your application has been submitted. Enrollment Number: ${response.enrollmentNo}. Check your email for confirmation.`, 'success');
+              document.getElementById('membershipForm').reset();
+              photoBase64 = '';
+              document.getElementById('photoPreview').innerHTML = '<i class="fas fa-cloud-upload-alt text-6xl text-gray-400"></i>';
+            } else {
+              showAlert('Error: ' + response.message, 'error');
+            }
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i> Submit Application';
+          })
+          .withFailureHandler(function(error) {
+            showAlert('Error: ' + error.message, 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i> Submit Application';
+          })
+          .submitIndividual(formData);
+      } catch (error) {
+        showAlert('Error: ' + error.message, 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i> Submit Application';
+      }
+    });
+  </script>
+</body>
 </html>
