@@ -621,6 +621,61 @@
       <div id="reportsTab" class="tab-content p-6">
         <h2 class="text-2xl font-bold mb-6">Analytics & Reports</h2>
 
+        <!-- PDF Export Section -->
+        <div class="bg-white border rounded-lg p-6 mb-6">
+          <h3 class="font-bold mb-4">
+            <i class="fas fa-file-pdf text-red-600 mr-2"></i> PDF Export Options
+          </h3>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div class="border rounded-lg p-4">
+              <h4 class="font-semibold mb-2">Member List PDF</h4>
+              <p class="text-sm text-gray-600 mb-3">Export individual or family member lists</p>
+              <select id="pdfMemberType" class="w-full px-3 py-2 border rounded mb-2">
+                <option value="Individual">Individual Members</option>
+                <option value="Family">Family Members</option>
+              </select>
+              <select id="pdfMemberStatus" class="w-full px-3 py-2 border rounded mb-2">
+                <option value="">All Status</option>
+                <option value="Approved">Approved Only</option>
+                <option value="Pending">Pending Only</option>
+                <option value="Rejected">Rejected Only</option>
+              </select>
+              <button onclick="exportMembersPDF()" class="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700">
+                <i class="fas fa-download mr-2"></i> Export PDF
+              </button>
+            </div>
+
+            <div class="border rounded-lg p-4">
+              <h4 class="font-semibold mb-2">Financial Report PDF</h4>
+              <p class="text-sm text-gray-600 mb-3">Export payment and revenue report</p>
+              <label class="block text-sm mb-1">Start Date:</label>
+              <input type="date" id="financialStartDate" class="w-full px-3 py-2 border rounded mb-2">
+              <label class="block text-sm mb-1">End Date:</label>
+              <input type="date" id="financialEndDate" class="w-full px-3 py-2 border rounded mb-2">
+              <button onclick="exportFinancialPDF()" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+                <i class="fas fa-chart-line mr-2"></i> Generate Report
+              </button>
+            </div>
+
+            <div class="border rounded-lg p-4">
+              <h4 class="font-semibold mb-2">Excel Export</h4>
+              <p class="text-sm text-gray-600 mb-3">Export data to Excel spreadsheet</p>
+              <select id="excelExportType" class="w-full px-3 py-2 border rounded mb-2">
+                <option value="Individual">Individual Members</option>
+                <option value="Family">Family Members</option>
+              </select>
+              <select id="excelExportStatus" class="w-full px-3 py-2 border rounded mb-2">
+                <option value="">All Status</option>
+                <option value="Approved">Approved Only</option>
+                <option value="Pending">Pending Only</option>
+              </select>
+              <button onclick="exportToExcelFromDashboard()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                <i class="fas fa-file-excel mr-2"></i> Export Excel
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="grid md:grid-cols-2 gap-6 mb-6">
           <div class="bg-white border rounded-lg p-6">
             <h3 class="font-bold mb-4">
@@ -2116,6 +2171,82 @@
           }
         })
         .exportToExcel('Individual', '');
+    }
+
+    // PDF Export Functions
+    function exportMembersPDF() {
+      const type = document.getElementById('pdfMemberType').value;
+      const status = document.getElementById('pdfMemberStatus').value;
+
+      if (!confirm(`Export ${type} members (${status || 'All'}) as PDF?`)) return;
+
+      showLoading('Generating PDF...');
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          hideLoading();
+          if (response.success) {
+            window.open(response.url, '_blank');
+            showAlert(`PDF exported successfully! ${response.message}`, 'success');
+          } else {
+            showAlert('PDF export failed: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          hideLoading();
+          showAlert('PDF export error: ' + error.message, 'error');
+        })
+        .exportToPDF(type, status, []);
+    }
+
+    function exportFinancialPDF() {
+      const startDate = document.getElementById('financialStartDate').value;
+      const endDate = document.getElementById('financialEndDate').value;
+
+      if (!confirm('Generate financial report PDF?')) return;
+
+      showLoading('Generating financial report...');
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          hideLoading();
+          if (response.success) {
+            window.open(response.url, '_blank');
+            showAlert(`Financial report generated! ${response.transactionCount} transactions, Total: ₹${response.totalAmount.toLocaleString()}`, 'success');
+          } else {
+            showAlert('Report generation failed: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          hideLoading();
+          showAlert('Report error: ' + error.message, 'error');
+        })
+        .exportFinancialReportPDF(startDate, endDate);
+    }
+
+    function exportToExcelFromDashboard() {
+      const type = document.getElementById('excelExportType').value;
+      const status = document.getElementById('excelExportStatus').value;
+
+      if (!confirm(`Export ${type} members (${status || 'All'}) to Excel?`)) return;
+
+      showLoading('Exporting to Excel...');
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          hideLoading();
+          if (response.success) {
+            window.open(response.url, '_blank');
+            showAlert('Excel file exported successfully!', 'success');
+          } else {
+            showAlert('Export failed: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          hideLoading();
+          showAlert('Export error: ' + error.message, 'error');
+        })
+        .exportToExcel(type, status);
     }
 
     function initializeDatabase() {

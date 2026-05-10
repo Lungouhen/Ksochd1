@@ -979,6 +979,259 @@ function exportToExcel(type, status) {
   }
 }
 
+// ==================== PDF EXPORT FUNCTIONALITY ====================
+
+/**
+ * Export member data as PDF
+ * @param {string} type - 'Individual' or 'Family'
+ * @param {string} status - Filter by status (optional)
+ * @param {Array} selectedMembers - Specific enrollment numbers to export (optional)
+ * @returns {Object} Success status and PDF URL
+ */
+function exportToPDF(type, status = '', selectedMembers = []) {
+  try {
+    const session = getSession();
+    if (!session || !session.authenticated) {
+      throw new Error('Unauthorized');
+    }
+
+    const sheet = getSheet(type);
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+
+    // Filter data
+    let exportData = [];
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const enrollmentNo = row[headers.indexOf('EnrollmentNo')];
+      const rowStatus = row[headers.indexOf('Status')];
+
+      // Apply filters
+      if (selectedMembers.length > 0) {
+        if (!selectedMembers.includes(enrollmentNo)) continue;
+      } else if (status && rowStatus !== status) {
+        continue;
+      }
+
+      exportData.push(row);
+    }
+
+    // Create HTML content for PDF
+    const htmlContent = createMemberListHTML(type, headers, exportData);
+
+    // Create temporary Google Doc for PDF conversion
+    const tempDoc = DocumentApp.create(`KSO_${type}_Export_${new Date().getTime()}`);
+    const body = tempDoc.getBody();
+    body.appendParagraph(htmlContent);
+
+    // Convert to PDF
+    const docId = tempDoc.getId();
+    const pdfBlob = DriveApp.getFileById(docId).getAs('application/pdf');
+    pdfBlob.setName(`KSO_${type}_${Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd_HHmmss')}.pdf`);
+
+    // Save to Drive folder or root
+    let pdfFile;
+    if (CONFIG.DRIVE_FOLDER_ID) {
+      const folder = DriveApp.getFolderById(CONFIG.DRIVE_FOLDER_ID);
+      pdfFile = folder.createFile(pdfBlob);
+    } else {
+      pdfFile = DriveApp.createFile(pdfBlob);
+    }
+
+    // Clean up temp doc
+    DriveApp.getFileById(docId).setTrashed(true);
+
+    logAction('PDF_EXPORT', session.email, `Exported ${exportData.length} ${type} members to PDF`);
+
+    return {
+      success: true,
+      url: pdfFile.getUrl(),
+      message: `PDF exported successfully with ${exportData.length} members`
+    };
+  } catch (error) {
+    logAction('ERROR', session?.email || 'System', `PDF export failed: ${error.message}`);
+    return {
+      success: false,
+      message: 'PDF export failed: ' + error.message
+    };
+  }
+}
+
+/**
+ * Create HTML table for member list PDF
+ */
+function createMemberListHTML(type, headers, data) {
+  const termName = getActiveTerm();
+  let html = `
+    <h1 style="text-align:center; color: #1e40af;">${CONFIG.ORGANIZATION}</h1>
+    <h2 style="text-align:center; color: #64748b;">${type} Members Report</h2>
+    <p style="text-align:center; color: #64748b;">Term: ${termName} | Generated: ${new Date().toLocaleString()}</p>
+    <hr>
+    <table border="1" cellpadding="8" cellspacing="0" style="width:100%; border-collapse: collapse; font-size: 10px;">
+      <thead style="background-color: #f1f5f9;">
+        <tr>
+  `;
+
+  // Add headers (select key columns)
+  const keyColumns = ['EnrollmentNo', 'Name', 'Email', 'Phone', 'Status', 'AmountPaid', 'PaymentDate'];
+  keyColumns.forEach(col => {
+    if (headers.includes(col)) {
+      html += `<th style="padding: 8px; text-align: left;">${col}</th>`;
+    }
+  });
+
+  html += `</tr></thead><tbody>`;
+
+  // Add data rows
+  data.forEach(row => {
+    html += '<tr>';
+    keyColumns.forEach(col => {
+      const index = headers.indexOf(col);
+      if (index >= 0) {
+        let value = row[index] || '-';
+        if (col === 'PaymentDate' && value !== '-') {
+          value = new Date(value).toLocaleDateString();
+        }
+        html += `<td style="padding: 8px;">${value}</td>`;
+      }
+    });
+    html += '</tr>';
+  });
+
+  html += `</tbody></table>
+    <br><p style="text-align:center; color: #9ca3af; font-size: 9px;">Total Records: ${data.length}</p>
+  `;
+
+  return html;
+}
+
+/**
+ * Export financial report as PDF
+ */
+function exportFinancialReportPDF(startDate, endDate) {
+  try {
+    const session = getSession();
+    if (!session || !session.authenticated) {
+      throw new Error('Unauthorized');
+    }
+
+    const paymentsSheet = getSheet('Payments');
+    const paymentsData = paymentsSheet.getDataRange().getValues();
+    const headers = paymentsData[0];
+
+    // Filter by date range
+    let filteredPayments = [];
+    let totalAmount = 0;
+
+    for (let i = 1; i < paymentsData.length; i++) {
+      const row = paymentsData[i];
+      const paymentDate = new Date(row[headers.indexOf('PaymentDate')]);
+      const amount = Number(row[headers.indexOf('Amount')] || 0);
+
+      if ((!startDate || paymentDate >= new Date(startDate)) &&
+          (!endDate || paymentDate <= new Date(endDate))) {
+        filteredPayments.push(row);
+        totalAmount += amount;
+      }
+    }
+
+    // Create HTML content
+    const htmlContent = createFinancialReportHTML(filteredPayments, headers, totalAmount, startDate, endDate);
+
+    // Create and convert to PDF
+    const tempDoc = DocumentApp.create(`KSO_Financial_Report_${new Date().getTime()}`);
+    const body = tempDoc.getBody();
+    body.appendParagraph(htmlContent);
+
+    const docId = tempDoc.getId();
+    const pdfBlob = DriveApp.getFileById(docId).getAs('application/pdf');
+    pdfBlob.setName(`KSO_Financial_Report_${Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd')}.pdf`);
+
+    let pdfFile;
+    if (CONFIG.DRIVE_FOLDER_ID) {
+      pdfFile = DriveApp.getFolderById(CONFIG.DRIVE_FOLDER_ID).createFile(pdfBlob);
+    } else {
+      pdfFile = DriveApp.createFile(pdfBlob);
+    }
+
+    DriveApp.getFileById(docId).setTrashed(true);
+
+    logAction('FINANCIAL_REPORT_PDF', session.email, `Exported financial report (${filteredPayments.length} transactions)`);
+
+    return {
+      success: true,
+      url: pdfFile.getUrl(),
+      totalAmount: totalAmount,
+      transactionCount: filteredPayments.length
+    };
+  } catch (error) {
+    logAction('ERROR', session?.email || 'System', `Financial report PDF failed: ${error.message}`);
+    return {
+      success: false,
+      message: error.message
+    };
+  }
+}
+
+/**
+ * Create HTML for financial report
+ */
+function createFinancialReportHTML(payments, headers, totalAmount, startDate, endDate) {
+  const termName = getActiveTerm();
+  const dateRange = `${startDate ? new Date(startDate).toLocaleDateString() : 'All'} - ${endDate ? new Date(endDate).toLocaleDateString() : 'All'}`;
+
+  let html = `
+    <h1 style="text-align:center; color: #1e40af;">${CONFIG.ORGANIZATION}</h1>
+    <h2 style="text-align:center; color: #64748b;">Financial Report</h2>
+    <p style="text-align:center; color: #64748b;">Term: ${termName}</p>
+    <p style="text-align:center; color: #64748b;">Period: ${dateRange}</p>
+    <hr>
+    <h3>Summary</h3>
+    <table border="1" cellpadding="8" cellspacing="0" style="width:100%; border-collapse: collapse; margin-bottom: 20px;">
+      <tr><td><strong>Total Transactions:</strong></td><td>${payments.length}</td></tr>
+      <tr><td><strong>Total Revenue:</strong></td><td>₹${totalAmount.toLocaleString()}</td></tr>
+    </table>
+
+    <h3>Transaction Details</h3>
+    <table border="1" cellpadding="8" cellspacing="0" style="width:100%; border-collapse: collapse; font-size: 10px;">
+      <thead style="background-color: #f1f5f9;">
+        <tr>
+          <th>Receipt No</th>
+          <th>Enrollment No</th>
+          <th>Name</th>
+          <th>Amount</th>
+          <th>Payment Date</th>
+          <th>Method</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  payments.forEach(row => {
+    const receiptNo = row[headers.indexOf('ReceiptNo')] || '-';
+    const enrollmentNo = row[headers.indexOf('EnrollmentNo')] || '-';
+    const name = row[headers.indexOf('Name')] || '-';
+    const amount = row[headers.indexOf('Amount')] || 0;
+    const paymentDate = row[headers.indexOf('PaymentDate')] ? new Date(row[headers.indexOf('PaymentDate')]).toLocaleDateString() : '-';
+    const method = row[headers.indexOf('PaymentMethod')] || '-';
+
+    html += `<tr>
+      <td>${receiptNo}</td>
+      <td>${enrollmentNo}</td>
+      <td>${name}</td>
+      <td>₹${Number(amount).toLocaleString()}</td>
+      <td>${paymentDate}</td>
+      <td>${method}</td>
+    </tr>`;
+  });
+
+  html += `</tbody></table>
+    <br><p style="text-align:right;"><strong>Total: ₹${totalAmount.toLocaleString()}</strong></p>
+  `;
+
+  return html;
+}
+
 // ==================== STATISTICS & DASHBOARD ====================
 
 function getDashboardStats() {
