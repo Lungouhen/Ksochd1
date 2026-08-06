@@ -20,8 +20,8 @@
           </div>
         </div>
         <div class="flex space-x-4">
-          <a href="?page=home" class="hover:text-blue-200 transition"><i class="fas fa-home mr-1"></i> Home</a>
-          <a href="?page=login" class="hover:text-blue-200 transition"><i class="fas fa-lock mr-1"></i> Admin Login</a>
+          <a href="#" onclick="navigateTo('home')" class="hover:text-blue-200 transition cursor-pointer"><i class="fas fa-home mr-1"></i> Home</a>
+          <a href="#" onclick="navigateTo('login')" class="hover:text-blue-200 transition cursor-pointer"><i class="fas fa-lock mr-1"></i> Admin Login</a>
         </div>
       </div>
     </div>
@@ -34,12 +34,12 @@
       <p class="text-xl mb-2">Kuki Students' Organisation</p>
       <p class="text-lg text-blue-200 mb-8">Session 2026-2027</p>
       <div class="flex justify-center space-x-4">
-        <a href="?page=individual" class="bg-white text-blue-900 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition transform hover:scale-105">
+        <button onclick="navigateTo('form-individual')" class="bg-white text-blue-900 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition transform hover:scale-105 cursor-pointer">
           <i class="fas fa-user mr-2"></i> Individual Membership
-        </a>
-        <a href="?page=family" class="bg-green-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-600 transition transform hover:scale-105">
+        </button>
+        <button onclick="navigateTo('form-family')" class="bg-green-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-600 transition transform hover:scale-105 cursor-pointer">
           <i class="fas fa-users mr-2"></i> Family Membership
-        </a>
+        </button>
       </div>
     </div>
   </div>
@@ -104,9 +104,9 @@
                 <span>Member directory access</span>
               </li>
             </ul>
-            <a href="?page=individual" class="block w-full bg-blue-900 text-white text-center py-3 rounded-lg font-semibold hover:bg-blue-800 transition">
+            <button onclick="navigateTo('form-individual')" class="block w-full bg-blue-900 text-white text-center py-3 rounded-lg font-semibold hover:bg-blue-800 transition cursor-pointer">
               Apply Now <i class="fas fa-arrow-right ml-2"></i>
-            </a>
+            </button>
           </div>
         </div>
 
@@ -145,9 +145,9 @@
                 <span>Cost-effective for families</span>
               </li>
             </ul>
-            <a href="?page=family" class="block w-full bg-green-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-green-700 transition">
+            <button onclick="navigateTo('form-family')" class="block w-full bg-green-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-green-700 transition cursor-pointer">
               Apply Now <i class="fas fa-arrow-right ml-2"></i>
-            </a>
+            </button>
           </div>
         </div>
       </div>
@@ -231,5 +231,15 @@
       <p class="text-sm text-gray-400">All rights reserved</p>
     </div>
   </footer>
+
+  <script>
+    // Get the script URL for navigation
+    const SCRIPT_URL = window.location.href.split('?')[0];
+
+    // Navigation helper function
+    function navigateTo(page) {
+      window.location.href = `${SCRIPT_URL}?page=${page}`;
+    }
+  </script>
 </body>
 </html>

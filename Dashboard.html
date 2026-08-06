@@ -11,9 +11,205 @@
     .tab-content.active { display: block; }
     .modal { display: none; }
     .modal.active { display: flex; }
+    .clickable-card {
+      transition: all 0.3s ease;
+    }
+    .clickable-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+    .clickable-link {
+      transition: all 0.2s ease;
+    }
+    .clickable-link:hover {
+      text-decoration: underline;
+      transform: scale(1.05);
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .loading-overlay.hidden {
+      display: none;
+    }
+
+    /* Spinner Animation */
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid #fff;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Skeleton Loading */
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+    }
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Button Loading State */
+    .btn-loading {
+      position: relative;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    .btn-loading::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      top: 50%;
+      left: 50%;
+      margin-left: -8px;
+      margin-top: -8px;
+      border: 2px solid transparent;
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    /* Progress Bar */
+    .progress-bar {
+      height: 4px;
+      background: #e0e0e0;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      transition: width 0.3s ease;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      /* Hide desktop navigation text on mobile */
+      .tab-btn {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.75rem;
+      }
+
+      /* Make tables horizontally scrollable */
+      .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* Stack stat cards vertically on mobile */
+      .stats-grid {
+        grid-template-columns: 1fr !important;
+      }
+
+      /* Adjust modal sizes for mobile */
+      .modal-content {
+        max-width: 95%;
+        margin: 1rem;
+      }
+
+      /* Reduce padding on mobile */
+      .container {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+      }
+
+      /* Make action buttons full width on mobile */
+      .mobile-full-width {
+        width: 100% !important;
+      }
+
+      /* Hide certain columns on mobile tables */
+      .hide-mobile {
+        display: none;
+      }
+
+      /* Adjust font sizes for mobile */
+      h1 {
+        font-size: 1.25rem;
+      }
+      h2 {
+        font-size: 1.1rem;
+      }
+      h3 {
+        font-size: 1rem;
+      }
+
+      /* Make bulk action buttons stack on mobile */
+      .bulk-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      /* Adjust navigation on mobile */
+      nav .container {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      /* Smaller loading spinner on mobile */
+      .spinner {
+        width: 40px;
+        height: 40px;
+      }
+    }
+
+    /* Tablet responsiveness */
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .tab-btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+    }
+
+    /* Touch device improvements */
+    @media (hover: none) and (pointer: coarse) {
+      /* Increase tap target sizes for touch */
+      button, .clickable-card, .tab-btn {
+        min-height: 44px;
+        min-width: 44px;
+      }
+
+      /* Remove hover effects on touch devices */
+      .clickable-card:hover {
+        transform: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+    }
   </style>
 </head>
 <body class="bg-gray-100">
+  <!-- Global Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay hidden">
+    <div class="text-center">
+      <div class="spinner"></div>
+      <p class="text-white mt-4 font-medium" id="loadingMessage">Loading...</p>
+    </div>
+  </div>
+
   <!-- Top Navigation -->
   <nav class="bg-blue-900 text-white shadow-lg">
     <div class="container mx-auto px-4 py-4">
@@ -47,8 +243,8 @@
     <div id="alertContainer" class="hidden mb-6"></div>
 
     <!-- Dashboard Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6" id="statsContainer">
-      <div class="bg-white rounded-lg shadow p-6">
+    <div class="stats-grid grid grid-cols-1 md:grid-cols-4 gap-6 mb-6" id="statsContainer">
+      <div class="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-xl transition transform hover:scale-105" onclick="navigateTo('all-members')">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-gray-500 text-sm">Total Members</p>
@@ -58,7 +254,7 @@
         </div>
       </div>
 
-      <div class="bg-white rounded-lg shadow p-6">
+      <div class="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-xl transition transform hover:scale-105" onclick="switchTab('individual')">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-gray-500 text-sm">Pending Approvals</p>
@@ -68,7 +264,7 @@
         </div>
       </div>
 
-      <div class="bg-white rounded-lg shadow p-6">
+      <div class="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-xl transition transform hover:scale-105" onclick="switchTab('payments')">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-gray-500 text-sm">Total Revenue</p>
@@ -78,7 +274,7 @@
         </div>
       </div>
 
-      <div class="bg-white rounded-lg shadow p-6">
+      <div class="bg-white rounded-lg shadow p-6 cursor-pointer hover:shadow-xl transition transform hover:scale-105" onclick="switchTab('payments')">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-gray-500 text-sm">Pending Payments</p>
@@ -123,6 +319,9 @@
           <button onclick="switchTab('tools')" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
             <i class="fas fa-tools mr-2"></i> Tools
           </button>
+          <button onclick="switchTab('settings')" class="tab-btn px-6 py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
+            <i class="fas fa-cog mr-2"></i> Settings
+          </button>
         </nav>
       </div>
 
@@ -147,19 +346,19 @@
               <i class="fas fa-bolt text-yellow-600 mr-2"></i> Quick Actions
             </h3>
             <div class="space-y-3">
-              <button onclick="switchTab('individual')" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">
+              <button onclick="switchTab('individual'); setTimeout(() => { document.getElementById('filterIndividualStatus').value='Pending'; loadMembers('Individual'); }, 100);" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition transform hover:scale-105 cursor-pointer">
                 <i class="fas fa-check-circle mr-2"></i> Review Pending Applications
               </button>
-              <button onclick="openRecordPaymentModal()" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition">
+              <button onclick="openRecordPaymentModal()" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition transform hover:scale-105 cursor-pointer">
                 <i class="fas fa-rupee-sign mr-2"></i> Record Payment
               </button>
-              <button onclick="switchTab('events')" class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition">
+              <button onclick="switchTab('events')" class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition transform hover:scale-105 cursor-pointer">
                 <i class="fas fa-calendar-plus mr-2"></i> Create Event
               </button>
-              <button onclick="switchTab('announcements')" class="w-full bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 transition">
+              <button onclick="switchTab('announcements')" class="w-full bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 transition transform hover:scale-105 cursor-pointer">
                 <i class="fas fa-bullhorn mr-2"></i> Post Announcement
               </button>
-              <button onclick="exportData()" class="w-full bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-700 transition">
+              <button onclick="exportData()" class="w-full bg-gray-600 text-white py-3 rounded-lg hover:bg-gray-700 transition transform hover:scale-105 cursor-pointer">
                 <i class="fas fa-file-excel mr-2"></i> Export Data
               </button>
             </div>
@@ -179,11 +378,18 @@
 
       <!-- Individual Members Tab -->
       <div id="individualTab" class="tab-content p-6">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold">Individual Members</h2>
-          <div class="flex space-x-3">
-            <input type="text" id="searchIndividual" placeholder="Search members..."
-              class="px-4 py-2 border rounded-lg" onkeyup="searchMembers('Individual')">
+        <div class="mb-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">Individual Members</h2>
+            <button onclick="toggleAdvancedSearch('individual')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              <i class="fas fa-filter mr-2"></i> Advanced Search
+            </button>
+          </div>
+
+          <!-- Basic Search Bar -->
+          <div class="flex space-x-3 mb-4">
+            <input type="text" id="searchIndividual" placeholder="Search by name, email, phone, enrollment..."
+              class="flex-1 px-4 py-2 border rounded-lg" onkeyup="searchMembers('Individual')">
             <select id="filterIndividualTerm" onchange="loadMembers('Individual')" class="px-4 py-2 border rounded-lg">
               <option value="">All Terms</option>
             </select>
@@ -194,20 +400,88 @@
               <option value="Rejected">Rejected</option>
             </select>
           </div>
+
+          <!-- Bulk Actions Bar -->
+          <div class="bulk-actions flex space-x-3 mb-4">
+            <button onclick="selectAllMembers('individual')" class="mobile-full-width px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">
+              <i class="fas fa-check-square mr-2"></i> Select All
+            </button>
+            <button onclick="deselectAllMembers('individual')" class="mobile-full-width px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">
+              <i class="fas fa-square mr-2"></i> Deselect All
+            </button>
+            <button onclick="bulkApprove('Individual')" class="mobile-full-width px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg">
+              <i class="fas fa-check-circle mr-2"></i> Bulk Approve
+            </button>
+            <button onclick="bulkReject('Individual')" class="mobile-full-width px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg">
+              <i class="fas fa-times-circle mr-2"></i> Bulk Reject
+            </button>
+            <button onclick="bulkEmail('Individual')" class="mobile-full-width px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg">
+              <i class="fas fa-envelope mr-2"></i> Bulk Email
+            </button>
+          </div>
+
+          <!-- Advanced Search Panel (Hidden by default) -->
+          <div id="advancedSearchIndividual" class="hidden bg-gray-50 p-4 rounded-lg border mb-4">
+            <h3 class="font-bold mb-3">Advanced Filters</h3>
+            <div class="grid md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium mb-1">Payment Status</label>
+                <select id="filterIndividualPayment" onchange="loadMembers('Individual')" class="w-full px-4 py-2 border rounded-lg">
+                  <option value="">All</option>
+                  <option value="paid">Paid</option>
+                  <option value="pending">Pending</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Gender</label>
+                <select id="filterIndividualGender" onchange="loadMembers('Individual')" class="w-full px-4 py-2 border rounded-lg">
+                  <option value="">All</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Institution</label>
+                <input type="text" id="filterIndividualInstitution" placeholder="Filter by institution"
+                  class="w-full px-4 py-2 border rounded-lg" onkeyup="loadMembers('Individual')">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Date From</label>
+                <input type="date" id="filterIndividualDateFrom" onchange="loadMembers('Individual')" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Date To</label>
+                <input type="date" id="filterIndividualDateTo" onchange="loadMembers('Individual')" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div class="flex items-end">
+                <button onclick="clearAdvancedFilters('individual')" class="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+                  <i class="fas fa-times mr-2"></i> Clear Filters
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div id="individualMembersContainer" class="overflow-x-auto">
+        <div id="individualMembersContainer" class="table-container overflow-x-auto">
           <p class="text-gray-500">Loading members...</p>
         </div>
       </div>
 
       <!-- Family Members Tab -->
       <div id="familyTab" class="tab-content p-6">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold">Family Members</h2>
-          <div class="flex space-x-3">
-            <input type="text" id="searchFamily" placeholder="Search members..."
-              class="px-4 py-2 border rounded-lg" onkeyup="searchMembers('Family')">
+        <div class="mb-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">Family Members</h2>
+            <button onclick="toggleAdvancedSearch('family')" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+              <i class="fas fa-filter mr-2"></i> Advanced Search
+            </button>
+          </div>
+
+          <!-- Basic Search Bar -->
+          <div class="flex space-x-3 mb-4">
+            <input type="text" id="searchFamily" placeholder="Search by name, email, phone, enrollment..."
+              class="flex-1 px-4 py-2 border rounded-lg" onkeyup="searchMembers('Family')">
             <select id="filterFamilyTerm" onchange="loadMembers('Family')" class="px-4 py-2 border rounded-lg">
               <option value="">All Terms</option>
             </select>
@@ -218,9 +492,70 @@
               <option value="Rejected">Rejected</option>
             </select>
           </div>
+
+          <!-- Bulk Actions Bar -->
+          <div class="bulk-actions flex space-x-3 mb-4">
+            <button onclick="selectAllMembers('family')" class="mobile-full-width px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">
+              <i class="fas fa-check-square mr-2"></i> Select All
+            </button>
+            <button onclick="deselectAllMembers('family')" class="mobile-full-width px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg">
+              <i class="fas fa-square mr-2"></i> Deselect All
+            </button>
+            <button onclick="bulkApprove('Family')" class="mobile-full-width px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg">
+              <i class="fas fa-check-circle mr-2"></i> Bulk Approve
+            </button>
+            <button onclick="bulkReject('Family')" class="mobile-full-width px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg">
+              <i class="fas fa-times-circle mr-2"></i> Bulk Reject
+            </button>
+            <button onclick="bulkEmail('Family')" class="mobile-full-width px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg">
+              <i class="fas fa-envelope mr-2"></i> Bulk Email
+            </button>
+          </div>
+
+          <!-- Advanced Search Panel (Hidden by default) -->
+          <div id="advancedSearchFamily" class="hidden bg-gray-50 p-4 rounded-lg border mb-4">
+            <h3 class="font-bold mb-3">Advanced Filters</h3>
+            <div class="grid md:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium mb-1">Payment Status</label>
+                <select id="filterFamilyPayment" onchange="loadMembers('Family')" class="w-full px-4 py-2 border rounded-lg">
+                  <option value="">All</option>
+                  <option value="paid">Paid</option>
+                  <option value="pending">Pending</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Gender</label>
+                <select id="filterFamilyGender" onchange="loadMembers('Family')" class="w-full px-4 py-2 border rounded-lg">
+                  <option value="">All</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Institution</label>
+                <input type="text" id="filterFamilyInstitution" placeholder="Filter by institution"
+                  class="w-full px-4 py-2 border rounded-lg" onkeyup="loadMembers('Family')">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Date From</label>
+                <input type="date" id="filterFamilyDateFrom" onchange="loadMembers('Family')" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-1">Date To</label>
+                <input type="date" id="filterFamilyDateTo" onchange="loadMembers('Family')" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div class="flex items-end">
+                <button onclick="clearAdvancedFilters('family')" class="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+                  <i class="fas fa-times mr-2"></i> Clear Filters
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div id="familyMembersContainer" class="overflow-x-auto">
+        <div id="familyMembersContainer" class="table-container overflow-x-auto">
           <p class="text-gray-500">Loading members...</p>
         </div>
       </div>
@@ -285,6 +620,61 @@
       <!-- Reports Tab -->
       <div id="reportsTab" class="tab-content p-6">
         <h2 class="text-2xl font-bold mb-6">Analytics & Reports</h2>
+
+        <!-- PDF Export Section -->
+        <div class="bg-white border rounded-lg p-6 mb-6">
+          <h3 class="font-bold mb-4">
+            <i class="fas fa-file-pdf text-red-600 mr-2"></i> PDF Export Options
+          </h3>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div class="border rounded-lg p-4">
+              <h4 class="font-semibold mb-2">Member List PDF</h4>
+              <p class="text-sm text-gray-600 mb-3">Export individual or family member lists</p>
+              <select id="pdfMemberType" class="w-full px-3 py-2 border rounded mb-2">
+                <option value="Individual">Individual Members</option>
+                <option value="Family">Family Members</option>
+              </select>
+              <select id="pdfMemberStatus" class="w-full px-3 py-2 border rounded mb-2">
+                <option value="">All Status</option>
+                <option value="Approved">Approved Only</option>
+                <option value="Pending">Pending Only</option>
+                <option value="Rejected">Rejected Only</option>
+              </select>
+              <button onclick="exportMembersPDF()" class="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700">
+                <i class="fas fa-download mr-2"></i> Export PDF
+              </button>
+            </div>
+
+            <div class="border rounded-lg p-4">
+              <h4 class="font-semibold mb-2">Financial Report PDF</h4>
+              <p class="text-sm text-gray-600 mb-3">Export payment and revenue report</p>
+              <label class="block text-sm mb-1">Start Date:</label>
+              <input type="date" id="financialStartDate" class="w-full px-3 py-2 border rounded mb-2">
+              <label class="block text-sm mb-1">End Date:</label>
+              <input type="date" id="financialEndDate" class="w-full px-3 py-2 border rounded mb-2">
+              <button onclick="exportFinancialPDF()" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+                <i class="fas fa-chart-line mr-2"></i> Generate Report
+              </button>
+            </div>
+
+            <div class="border rounded-lg p-4">
+              <h4 class="font-semibold mb-2">Excel Export</h4>
+              <p class="text-sm text-gray-600 mb-3">Export data to Excel spreadsheet</p>
+              <select id="excelExportType" class="w-full px-3 py-2 border rounded mb-2">
+                <option value="Individual">Individual Members</option>
+                <option value="Family">Family Members</option>
+              </select>
+              <select id="excelExportStatus" class="w-full px-3 py-2 border rounded mb-2">
+                <option value="">All Status</option>
+                <option value="Approved">Approved Only</option>
+                <option value="Pending">Pending Only</option>
+              </select>
+              <button onclick="exportToExcelFromDashboard()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                <i class="fas fa-file-excel mr-2"></i> Export Excel
+              </button>
+            </div>
+          </div>
+        </div>
 
         <div class="grid md:grid-cols-2 gap-6 mb-6">
           <div class="bg-white border rounded-lg p-6">
@@ -440,6 +830,197 @@
           </div>
         </div>
       </div>
+
+      <!-- Settings Tab -->
+      <div id="settingsTab" class="tab-content p-6">
+        <h2 class="text-2xl font-bold mb-6">
+          <i class="fas fa-cog text-gray-700 mr-2"></i> System Settings
+        </h2>
+
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Organization Settings -->
+          <div class="bg-white border rounded-lg p-6">
+            <h3 class="font-bold mb-4 flex items-center">
+              <i class="fas fa-building text-blue-600 mr-2"></i> Organization Info
+            </h3>
+            <form id="orgSettingsForm" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Organization Name</label>
+                <input type="text" id="orgName" value="Kuki Students' Organisation (KSO) Chandigarh" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Contact Email</label>
+                <input type="email" id="orgEmail" placeholder="contact@ksocandigarh.org" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Contact Phone</label>
+                <input type="tel" id="orgPhone" placeholder="+91 XXXXX XXXXX" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Address</label>
+                <textarea id="orgAddress" rows="3" class="w-full px-4 py-2 border rounded-lg" placeholder="Organization address"></textarea>
+              </div>
+              <button type="button" onclick="saveOrgSettings()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                <i class="fas fa-save mr-2"></i> Save Organization Info
+              </button>
+            </form>
+          </div>
+
+          <!-- Fee Structure Settings -->
+          <div class="bg-white border rounded-lg p-6">
+            <h3 class="font-bold mb-4 flex items-center">
+              <i class="fas fa-money-bill-wave text-green-600 mr-2"></i> Fee Structure
+            </h3>
+            <form id="feeSettingsForm" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Individual Membership Fee (₹)</label>
+                <input type="number" id="individualFee" value="500" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Family Membership Fee (₹)</label>
+                <input type="number" id="familyFee" value="1500" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Late Fee (₹)</label>
+                <input type="number" id="lateFee" value="100" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Currency</label>
+                <select id="currency" class="w-full px-4 py-2 border rounded-lg">
+                  <option value="INR">Indian Rupee (₹)</option>
+                  <option value="USD">US Dollar ($)</option>
+                  <option value="EUR">Euro (€)</option>
+                </select>
+              </div>
+              <button type="button" onclick="saveFeeSettings()" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+                <i class="fas fa-save mr-2"></i> Save Fee Structure
+              </button>
+            </form>
+          </div>
+
+          <!-- Email Settings -->
+          <div class="bg-white border rounded-lg p-6">
+            <h3 class="font-bold mb-4 flex items-center">
+              <i class="fas fa-envelope text-purple-600 mr-2"></i> Email Configuration
+            </h3>
+            <form id="emailSettingsForm" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">From Email</label>
+                <input type="email" id="fromEmail" placeholder="noreply@ksocandigarh.org" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">From Name</label>
+                <input type="text" id="fromName" value="KSO Chandigarh" class="w-full px-4 py-2 border rounded-lg">
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Email Signature</label>
+                <textarea id="emailSignature" rows="4" class="w-full px-4 py-2 border rounded-lg" placeholder="Best regards,&#10;KSO Chandigarh Team"></textarea>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" id="autoEmails" class="mr-2">
+                <label class="text-sm">Enable automatic email notifications</label>
+              </div>
+              <button type="button" onclick="saveEmailSettings()" class="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700">
+                <i class="fas fa-save mr-2"></i> Save Email Settings
+              </button>
+            </form>
+          </div>
+
+          <!-- System Preferences -->
+          <div class="bg-white border rounded-lg p-6">
+            <h3 class="font-bold mb-4 flex items-center">
+              <i class="fas fa-sliders-h text-orange-600 mr-2"></i> System Preferences
+            </h3>
+            <form id="systemPrefsForm" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Date Format</label>
+                <select id="dateFormat" class="w-full px-4 py-2 border rounded-lg">
+                  <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                  <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                  <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Time Zone</label>
+                <select id="timezone" class="w-full px-4 py-2 border rounded-lg">
+                  <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                  <option value="UTC">UTC</option>
+                  <option value="America/New_York">America/New_York (EST)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Items Per Page</label>
+                <select id="itemsPerPage" class="w-full px-4 py-2 border rounded-lg">
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" id="enableNotifications" class="mr-2" checked>
+                <label class="text-sm">Enable in-app notifications</label>
+              </div>
+              <button type="button" onclick="saveSystemPrefs()" class="w-full bg-orange-600 text-white py-2 rounded hover:bg-orange-700">
+                <i class="fas fa-save mr-2"></i> Save Preferences
+              </button>
+            </form>
+          </div>
+
+          <!-- Backup & Security -->
+          <div class="bg-white border rounded-lg p-6">
+            <h3 class="font-bold mb-4 flex items-center">
+              <i class="fas fa-shield-alt text-red-600 mr-2"></i> Backup & Security
+            </h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Last Backup</label>
+                <p class="text-sm text-gray-600" id="lastBackupDate">Never</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Auto Backup Frequency</label>
+                <select id="backupFrequency" class="w-full px-4 py-2 border rounded-lg">
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="manual">Manual Only</option>
+                </select>
+              </div>
+              <button type="button" onclick="createBackupNow()" class="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700">
+                <i class="fas fa-download mr-2"></i> Create Backup Now
+              </button>
+              <button type="button" onclick="saveBackupSettings()" class="w-full bg-gray-600 text-white py-2 rounded hover:bg-gray-700">
+                <i class="fas fa-save mr-2"></i> Save Backup Settings
+              </button>
+            </div>
+          </div>
+
+          <!-- Advanced Settings -->
+          <div class="bg-white border rounded-lg p-6">
+            <h3 class="font-bold mb-4 flex items-center">
+              <i class="fas fa-cogs text-gray-700 mr-2"></i> Advanced Settings
+            </h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">Enrollment Number Format</label>
+                <input type="text" id="enrollmentFormat" value="KSO{TYPE}{YEAR}-{NUM}" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g., KSOI2026-0001">
+                <p class="text-xs text-gray-500 mt-1">Variables: {TYPE}, {YEAR}, {NUM}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">Receipt Number Format</label>
+                <input type="text" id="receiptFormat" value="REC{YEAR}-{NUM}" class="w-full px-4 py-2 border rounded-lg" placeholder="e.g., REC2026-00001">
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" id="maintenanceMode" class="mr-2">
+                <label class="text-sm">Enable Maintenance Mode (public pages disabled)</label>
+              </div>
+              <button type="button" onclick="saveAdvancedSettings()" class="w-full bg-gray-600 text-white py-2 rounded hover:bg-gray-700">
+                <i class="fas fa-save mr-2"></i> Save Advanced Settings
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -583,6 +1164,87 @@
   </div>
 
   <script>
+    // Get the script URL for navigation
+    const SCRIPT_URL = window.location.href.split('?')[0];
+
+    // Navigation helper function
+    function navigateTo(page) {
+      window.location.href = `${SCRIPT_URL}?page=${page}`;
+    }
+
+    // ==================== LOADING INDICATOR HELPERS ====================
+
+    // Show global loading overlay
+    function showLoading(message = 'Loading...') {
+      const overlay = document.getElementById('loadingOverlay');
+      const messageEl = document.getElementById('loadingMessage');
+      messageEl.textContent = message;
+      overlay.classList.remove('hidden');
+    }
+
+    // Hide global loading overlay
+    function hideLoading() {
+      const overlay = document.getElementById('loadingOverlay');
+      overlay.classList.add('hidden');
+    }
+
+    // Add loading state to a button
+    function setButtonLoading(buttonElement, loading = true) {
+      if (loading) {
+        buttonElement.disabled = true;
+        buttonElement.classList.add('btn-loading');
+        buttonElement.dataset.originalText = buttonElement.innerHTML;
+        const icon = buttonElement.querySelector('i');
+        if (icon) {
+          buttonElement.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i>${buttonElement.textContent.trim()}`;
+        }
+      } else {
+        buttonElement.disabled = false;
+        buttonElement.classList.remove('btn-loading');
+        if (buttonElement.dataset.originalText) {
+          buttonElement.innerHTML = buttonElement.dataset.originalText;
+        }
+      }
+    }
+
+    // Show skeleton loader in a container
+    function showSkeleton(containerId, type = 'table') {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      if (type === 'table') {
+        container.innerHTML = `
+          <div class="space-y-3">
+            ${Array(5).fill(0).map(() => `
+              <div class="skeleton h-12 rounded"></div>
+            `).join('')}
+          </div>
+        `;
+      } else if (type === 'card') {
+        container.innerHTML = `
+          <div class="space-y-4">
+            ${Array(3).fill(0).map(() => `
+              <div class="skeleton h-24 rounded-lg"></div>
+            `).join('')}
+          </div>
+        `;
+      } else if (type === 'text') {
+        container.innerHTML = `
+          <div class="space-y-2">
+            ${Array(4).fill(0).map(() => `
+              <div class="skeleton h-4 rounded w-3/4"></div>
+            `).join('')}
+          </div>
+        `;
+      }
+    }
+
+    // Progress tracker for bulk operations
+    function showProgress(current, total, message = '') {
+      const percentage = Math.round((current / total) * 100);
+      showLoading(`${message} (${current}/${total}) - ${percentage}%`);
+    }
+
     let currentUser = null;
     let allMembers = {Individual: [], Family: []};
 
@@ -597,7 +1259,7 @@
               document.getElementById('adminRole').textContent = currentUser.role;
               loadDashboardData();
             } else {
-              window.location.href = '?page=login';
+              navigateTo('login');
             }
           })
           .checkAuth();
@@ -627,6 +1289,10 @@
     }
 
     function loadStats() {
+      // Show skeleton loaders
+      showSkeleton('recentActivities', 'text');
+      showSkeleton('birthdaysContainer', 'card');
+
       google.script.run
         .withSuccessHandler(function(data) {
           if (data) {
@@ -646,6 +1312,9 @@
             document.getElementById('recentActivities').innerHTML = activitiesHtml || '<p class="text-gray-500 text-sm">No recent activities</p>';
           }
         })
+        .withFailureHandler(function(error) {
+          document.getElementById('recentActivities').innerHTML = '<p class="text-red-500 text-sm">Failed to load activities</p>';
+        })
         .getDashboardStats();
 
       // Load birthdays
@@ -660,6 +1329,9 @@
           `).join('');
           document.getElementById('birthdaysContainer').innerHTML = birthdaysHtml || '<p class="text-gray-500">No birthdays this month</p>';
         })
+        .withFailureHandler(function(error) {
+          document.getElementById('birthdaysContainer').innerHTML = '<p class="text-red-500 text-sm">Failed to load birthdays</p>';
+        })
         .getBirthdaysThisMonth();
     }
 
@@ -667,17 +1339,61 @@
       const status = document.getElementById(`filter${type}Status`)?.value || '';
       const term = document.getElementById(`filter${type}Term`)?.value || '';
 
+      // Get advanced filters
+      const paymentFilter = document.getElementById(`filter${type}Payment`)?.value || '';
+      const genderFilter = document.getElementById(`filter${type}Gender`)?.value || '';
+      const institutionFilter = document.getElementById(`filter${type}Institution`)?.value.toLowerCase() || '';
+      const dateFrom = document.getElementById(`filter${type}DateFrom`)?.value || '';
+      const dateTo = document.getElementById(`filter${type}DateTo`)?.value || '';
+
+      // Show skeleton loader
+      showSkeleton(`${type.toLowerCase()}MembersContainer`, 'table');
+
       google.script.run
         .withSuccessHandler(function(members) {
           allMembers[type] = members;
 
-          // Apply term filter client-side if term is selected
+          // Apply client-side filters
           let filteredMembers = members;
+
+          // Term filter
           if (term) {
-            filteredMembers = members.filter(m => m.Term === term);
+            filteredMembers = filteredMembers.filter(m => m.Term === term);
+          }
+
+          // Payment filter
+          if (paymentFilter) {
+            filteredMembers = filteredMembers.filter(m => {
+              const hasPaid = m.AmountPaid > 0;
+              return paymentFilter === 'paid' ? hasPaid : !hasPaid;
+            });
+          }
+
+          // Gender filter
+          if (genderFilter) {
+            filteredMembers = filteredMembers.filter(m => m.Gender === genderFilter);
+          }
+
+          // Institution filter
+          if (institutionFilter) {
+            filteredMembers = filteredMembers.filter(m =>
+              (m.Institution || '').toLowerCase().includes(institutionFilter)
+            );
+          }
+
+          // Date range filter
+          if (dateFrom) {
+            filteredMembers = filteredMembers.filter(m => new Date(m.SubmissionDate) >= new Date(dateFrom));
+          }
+          if (dateTo) {
+            filteredMembers = filteredMembers.filter(m => new Date(m.SubmissionDate) <= new Date(dateTo));
           }
 
           displayMembers(type, filteredMembers);
+        })
+        .withFailureHandler(function(error) {
+          const container = document.getElementById(`${type.toLowerCase()}MembersContainer`);
+          container.innerHTML = `<p class="text-red-500">Failed to load members: ${error.message}</p>`;
         })
         .getMembers(type, status);
     }
@@ -694,6 +1410,9 @@
         <table class="min-w-full bg-white">
           <thead class="bg-gray-100">
             <tr>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">
+                <input type="checkbox" onchange="toggleAllCheckboxes('${type.toLowerCase()}')" id="selectAll${type}">
+              </th>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Enrollment</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Name</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-700">Email</th>
@@ -707,7 +1426,14 @@
           <tbody class="divide-y divide-gray-200">
             ${members.map(member => `
               <tr class="hover:bg-gray-50">
-                <td class="px-4 py-3 text-sm">${member.EnrollmentNo}</td>
+                <td class="px-4 py-3 text-sm">
+                  <input type="checkbox" class="member-checkbox-${type.toLowerCase()}" value="${member.EnrollmentNo}" data-email="${member.Email}" data-name="${member.Name}">
+                </td>
+                <td class="px-4 py-3 text-sm">
+                  <a href="#" onclick="viewMember('${member.EnrollmentNo}'); return false;" class="text-blue-600 hover:text-blue-800 font-medium underline cursor-pointer">
+                    ${member.EnrollmentNo}
+                  </a>
+                </td>
                 <td class="px-4 py-3 text-sm font-medium">${member.Name}</td>
                 <td class="px-4 py-3 text-sm">${member.Email}</td>
                 <td class="px-4 py-3 text-sm">${member.Phone}</td>
@@ -723,14 +1449,14 @@
                   ${member.AmountPaid > 0 ? `<span class="text-green-600">₹${member.AmountPaid}</span>` : '<span class="text-red-600">Pending</span>'}
                 </td>
                 <td class="px-4 py-3 text-sm">
-                  <button onclick="viewMember('${member.EnrollmentNo}')" class="text-blue-600 hover:text-blue-800 mr-2">
+                  <button onclick="viewMember('${member.EnrollmentNo}')" class="text-blue-600 hover:text-blue-800 mr-2" title="View Details">
                     <i class="fas fa-eye"></i>
                   </button>
                   ${member.Status === 'Pending' ? `
-                    <button onclick="approveMember('${member.EnrollmentNo}')" class="text-green-600 hover:text-green-800 mr-2">
+                    <button onclick="approveMember('${member.EnrollmentNo}')" class="text-green-600 hover:text-green-800 mr-2" title="Approve">
                       <i class="fas fa-check"></i>
                     </button>
-                    <button onclick="rejectMember('${member.EnrollmentNo}')" class="text-red-600 hover:text-red-800">
+                    <button onclick="rejectMember('${member.EnrollmentNo}')" class="text-red-600 hover:text-red-800" title="Reject">
                       <i class="fas fa-times"></i>
                     </button>
                   ` : ''}
@@ -958,7 +1684,7 @@
     function logout() {
       google.script.run
         .withSuccessHandler(function() {
-          window.location.href = '?page=login';
+          navigateTo('login');
         })
         .logout();
     }
@@ -972,6 +1698,176 @@
         member.Phone.includes(query)
       );
       displayMembers(type, filtered);
+    }
+
+    // Advanced search toggle
+    function toggleAdvancedSearch(type) {
+      const typeCapital = type.charAt(0).toUpperCase() + type.slice(1);
+      const panel = document.getElementById(`advancedSearch${typeCapital}`);
+      panel.classList.toggle('hidden');
+    }
+
+    // Clear advanced filters
+    function clearAdvancedFilters(type) {
+      const typeCapital = type.charAt(0).toUpperCase() + type.slice(1);
+
+      document.getElementById(`filter${typeCapital}Payment`).value = '';
+      document.getElementById(`filter${typeCapital}Gender`).value = '';
+      document.getElementById(`filter${typeCapital}Institution`).value = '';
+      document.getElementById(`filter${typeCapital}DateFrom`).value = '';
+      document.getElementById(`filter${typeCapital}DateTo`).value = '';
+
+      loadMembers(typeCapital);
+    }
+
+    // Bulk operations
+    function toggleAllCheckboxes(type) {
+      const checkboxes = document.querySelectorAll(`.member-checkbox-${type}`);
+      const selectAll = document.getElementById(`selectAll${type.charAt(0).toUpperCase() + type.slice(1)}`);
+      checkboxes.forEach(cb => cb.checked = selectAll.checked);
+    }
+
+    function selectAllMembers(type) {
+      const checkboxes = document.querySelectorAll(`.member-checkbox-${type}`);
+      checkboxes.forEach(cb => cb.checked = true);
+    }
+
+    function deselectAllMembers(type) {
+      const checkboxes = document.querySelectorAll(`.member-checkbox-${type}`);
+      checkboxes.forEach(cb => cb.checked = false);
+    }
+
+    function getSelectedMembers(type) {
+      const checkboxes = document.querySelectorAll(`.member-checkbox-${type}:checked`);
+      return Array.from(checkboxes).map(cb => ({
+        enrollmentNo: cb.value,
+        email: cb.dataset.email,
+        name: cb.dataset.name
+      }));
+    }
+
+    function bulkApprove(type) {
+      const selected = getSelectedMembers(type.toLowerCase());
+      if (selected.length === 0) {
+        alert('Please select members to approve');
+        return;
+      }
+
+      if (!confirm(`Approve ${selected.length} member(s)?`)) return;
+
+      let completed = 0;
+      let failed = 0;
+      const total = selected.length;
+
+      // Show progress
+      showProgress(0, total, 'Approving members');
+
+      selected.forEach(member => {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            completed++;
+            showProgress(completed + failed, total, 'Approving members');
+            if (completed + failed === selected.length) {
+              hideLoading();
+              showAlert(`Bulk approve completed: ${completed} success, ${failed} failed`, completed === selected.length ? 'success' : 'error');
+              loadMembers(type);
+            }
+          })
+          .withFailureHandler(function(error) {
+            failed++;
+            showProgress(completed + failed, total, 'Approving members');
+            if (completed + failed === selected.length) {
+              hideLoading();
+              showAlert(`Bulk approve completed: ${completed} success, ${failed} failed`, 'error');
+              loadMembers(type);
+            }
+          })
+          .approveMember(member.enrollmentNo, 'Bulk approved');
+      });
+    }
+
+    function bulkReject(type) {
+      const selected = getSelectedMembers(type.toLowerCase());
+      if (selected.length === 0) {
+        alert('Please select members to reject');
+        return;
+      }
+
+      const reason = prompt('Enter rejection reason:');
+      if (!reason) return;
+
+      if (!confirm(`Reject ${selected.length} member(s)?`)) return;
+
+      let completed = 0;
+      let failed = 0;
+      const total = selected.length;
+
+      // Show progress
+      showProgress(0, total, 'Rejecting members');
+
+      selected.forEach(member => {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            completed++;
+            showProgress(completed + failed, total, 'Rejecting members');
+            if (completed + failed === selected.length) {
+              hideLoading();
+              showAlert(`Bulk reject completed: ${completed} success, ${failed} failed`, completed === selected.length ? 'success' : 'error');
+              loadMembers(type);
+            }
+          })
+          .withFailureHandler(function(error) {
+            failed++;
+            showProgress(completed + failed, total, 'Rejecting members');
+            if (completed + failed === selected.length) {
+              hideLoading();
+              showAlert(`Bulk reject completed: ${completed} success, ${failed} failed`, 'error');
+              loadMembers(type);
+            }
+          })
+          .rejectMember(member.enrollmentNo, reason);
+      });
+    }
+
+    function bulkEmail(type) {
+      const selected = getSelectedMembers(type.toLowerCase());
+      if (selected.length === 0) {
+        alert('Please select members to email');
+        return;
+      }
+
+      const subject = prompt('Email Subject:');
+      if (!subject) return;
+
+      const message = prompt('Email Message:');
+      if (!message) return;
+
+      if (!confirm(`Send email to ${selected.length} member(s)?`)) return;
+
+      // Show loading
+      showLoading(`Sending bulk email to ${selected.length} members...`);
+
+      const emailData = {
+        recipients: selected.map(m => m.email),
+        subject: subject,
+        body: message,
+        type: type
+      };
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          hideLoading();
+          if (response.success) {
+            showAlert(`Bulk email sent successfully to ${selected.length} members!`, 'success');
+          } else {
+            showAlert('Failed to send bulk email: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          hideLoading();
+          showAlert('Error sending bulk email: ' + error.message, 'error');
+        })
+        .sendBulkEmail(emailData);
     }
 
     // ============ ADMIN MANAGEMENT FUNCTIONS ============
@@ -1277,6 +2173,82 @@
         .exportToExcel('Individual', '');
     }
 
+    // PDF Export Functions
+    function exportMembersPDF() {
+      const type = document.getElementById('pdfMemberType').value;
+      const status = document.getElementById('pdfMemberStatus').value;
+
+      if (!confirm(`Export ${type} members (${status || 'All'}) as PDF?`)) return;
+
+      showLoading('Generating PDF...');
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          hideLoading();
+          if (response.success) {
+            window.open(response.url, '_blank');
+            showAlert(`PDF exported successfully! ${response.message}`, 'success');
+          } else {
+            showAlert('PDF export failed: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          hideLoading();
+          showAlert('PDF export error: ' + error.message, 'error');
+        })
+        .exportToPDF(type, status, []);
+    }
+
+    function exportFinancialPDF() {
+      const startDate = document.getElementById('financialStartDate').value;
+      const endDate = document.getElementById('financialEndDate').value;
+
+      if (!confirm('Generate financial report PDF?')) return;
+
+      showLoading('Generating financial report...');
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          hideLoading();
+          if (response.success) {
+            window.open(response.url, '_blank');
+            showAlert(`Financial report generated! ${response.transactionCount} transactions, Total: ₹${response.totalAmount.toLocaleString()}`, 'success');
+          } else {
+            showAlert('Report generation failed: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          hideLoading();
+          showAlert('Report error: ' + error.message, 'error');
+        })
+        .exportFinancialReportPDF(startDate, endDate);
+    }
+
+    function exportToExcelFromDashboard() {
+      const type = document.getElementById('excelExportType').value;
+      const status = document.getElementById('excelExportStatus').value;
+
+      if (!confirm(`Export ${type} members (${status || 'All'}) to Excel?`)) return;
+
+      showLoading('Exporting to Excel...');
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          hideLoading();
+          if (response.success) {
+            window.open(response.url, '_blank');
+            showAlert('Excel file exported successfully!', 'success');
+          } else {
+            showAlert('Export failed: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          hideLoading();
+          showAlert('Export error: ' + error.message, 'error');
+        })
+        .exportToExcel(type, status);
+    }
+
     function initializeDatabase() {
       if (!confirm('Initialize database with default structure?')) return;
 
@@ -1315,6 +2287,180 @@
     function openVolunteerModal() { alert('Volunteer hours - to be implemented'); }
     function openJobBoardModal() { alert('Job board - to be implemented'); }
     function exportAllData() { exportData(); }
+
+    // Settings functions
+    function saveOrgSettings() {
+      const settings = {
+        orgName: document.getElementById('orgName').value,
+        orgEmail: document.getElementById('orgEmail').value,
+        orgPhone: document.getElementById('orgPhone').value,
+        orgAddress: document.getElementById('orgAddress').value
+      };
+
+      showLoading('Saving organization settings...');
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          hideLoading();
+          if (response.success) {
+            showAlert('Organization settings saved successfully!', 'success');
+          } else {
+            showAlert('Failed to save settings: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          hideLoading();
+          showAlert('Error saving settings: ' + error.message, 'error');
+        })
+        .saveSetting('ORG_SETTINGS', JSON.stringify(settings));
+    }
+
+    function saveFeeSettings() {
+      const individualFee = document.getElementById('individualFee').value;
+      const familyFee = document.getElementById('familyFee').value;
+      const lateFee = document.getElementById('lateFee').value;
+
+      showLoading('Updating fee structure...');
+
+      Promise.all([
+        new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            .updateFeeStructure({key: 'INDIVIDUAL_FEE', value: individualFee, description: 'Individual membership fee'});
+        }),
+        new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            .updateFeeStructure({key: 'FAMILY_FEE', value: familyFee, description: 'Family membership fee'});
+        }),
+        new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            .updateFeeStructure({key: 'LATE_FEE', value: lateFee, description: 'Late payment fee'});
+        })
+      ]).then(() => {
+        hideLoading();
+        showAlert('Fee structure updated successfully!', 'success');
+      }).catch(error => {
+        hideLoading();
+        showAlert('Error updating fee structure: ' + error.message, 'error');
+      });
+    }
+
+    function saveEmailSettings() {
+      const settings = {
+        fromEmail: document.getElementById('fromEmail').value,
+        fromName: document.getElementById('fromName').value,
+        emailSignature: document.getElementById('emailSignature').value,
+        autoEmails: document.getElementById('autoEmails').checked
+      };
+
+      showLoading('Saving email settings...');
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          hideLoading();
+          if (response.success) {
+            showAlert('Email settings saved successfully!', 'success');
+          } else {
+            showAlert('Failed to save settings: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          hideLoading();
+          showAlert('Error saving settings: ' + error.message, 'error');
+        })
+        .saveSetting('EMAIL_SETTINGS', JSON.stringify(settings));
+    }
+
+    function saveSystemPrefs() {
+      const settings = {
+        dateFormat: document.getElementById('dateFormat').value,
+        timezone: document.getElementById('timezone').value,
+        itemsPerPage: document.getElementById('itemsPerPage').value,
+        enableNotifications: document.getElementById('enableNotifications').checked
+      };
+
+      showLoading('Saving system preferences...');
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          hideLoading();
+          if (response.success) {
+            showAlert('System preferences saved successfully!', 'success');
+          } else {
+            showAlert('Failed to save preferences: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          hideLoading();
+          showAlert('Error saving preferences: ' + error.message, 'error');
+        })
+        .saveSetting('SYSTEM_PREFS', JSON.stringify(settings));
+    }
+
+    function createBackupNow() {
+      if (!confirm('Create a backup of all data now?')) return;
+
+      showLoading('Creating backup...');
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          hideLoading();
+          if (response.success) {
+            showAlert('Backup created successfully! URL: ' + response.backupURL, 'success');
+            document.getElementById('lastBackupDate').textContent = new Date().toLocaleString();
+          } else {
+            showAlert('Backup failed: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          hideLoading();
+          showAlert('Error creating backup: ' + error.message, 'error');
+        })
+        .createBackup();
+    }
+
+    function saveBackupSettings() {
+      const frequency = document.getElementById('backupFrequency').value;
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            showAlert('Backup settings saved successfully!', 'success');
+          } else {
+            showAlert('Failed to save settings: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          showAlert('Error saving settings: ' + error.message, 'error');
+        })
+        .saveSetting('BACKUP_FREQUENCY', frequency);
+    }
+
+    function saveAdvancedSettings() {
+      const settings = {
+        enrollmentFormat: document.getElementById('enrollmentFormat').value,
+        receiptFormat: document.getElementById('receiptFormat').value,
+        maintenanceMode: document.getElementById('maintenanceMode').checked
+      };
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          if (response.success) {
+            showAlert('Advanced settings saved successfully!', 'success');
+          } else {
+            showAlert('Failed to save settings: ' + response.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          showAlert('Error saving settings: ' + error.message, 'error');
+        })
+        .saveSetting('ADVANCED_SETTINGS', JSON.stringify(settings));
+    }
 
     // Initialize on page load
     window.onload = init;
